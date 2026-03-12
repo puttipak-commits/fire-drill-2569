@@ -757,6 +757,7 @@ async function submitReg() {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
+      redirect: 'follow',
       body: JSON.stringify({ code: selected.code, name: selected.name, dept: selected.dept, ts })
     });
     const json = await res.json();
