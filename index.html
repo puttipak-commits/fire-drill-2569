@@ -625,7 +625,7 @@ body{
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
-const API_URL = 'https://script.google.com/macros/s/AKfycbxCZBwVJK3X-etyKscvkVvAiQ7MDwIpdtM_MWUr7z0y24iVSWrhYmFaXpbuC8CDYxrI/exec';
+const API_URL = 'https://fire2569.dsb.co.th/fire';
 const TARGET = 40;
 const AUTO_REFRESH_MS = 30000; // refresh ทุก 30 วินาที
 
@@ -651,7 +651,7 @@ function setSyncState(state, txt) {
 async function loadRegistered(silent = false) {
   if (!silent) setSyncState('loading', 'กำลังโหลดข้อมูล...');
   try {
-    const res = await fetch(API_URL + '?t=' + Date.now());
+    const res = await fetch(API_URL + '/list?t=' + Date.now());
     const json = await res.json();
     if (json.ok) {
       registered = json.data || [];
@@ -762,7 +762,7 @@ async function submitReg() {
       dept: selected.dept,
       ts: ts
     });
-    const res = await fetch(API_URL + '?' + params.toString());
+    const res = await fetch(API_URL + '/register?' + params.toString());
     const json = await res.json();
     if (json.ok) {
       showToast('✅ ลงทะเบียนสำเร็จ · ' + cleanName(selected.name), 'success');
