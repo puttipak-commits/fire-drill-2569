@@ -157,6 +157,32 @@ body{
 .stat-num{font-size:26px;font-weight:700;color:var(--sun1);display:block;line-height:1;}
 .stat-lbl{font-size:11px;color:var(--text2);margin-top:3px;font-weight:500;}
 
+/* ── LOADING INDICATOR ── */
+.loading-bar{
+  display:none;
+  height:3px;
+  background:linear-gradient(90deg,#e84000,#ffaa00,#e84000);
+  background-size:200% 100%;
+  animation:loading-move 1.2s linear infinite;
+  border-radius:2px;
+  margin-bottom:8px;
+}
+.loading-bar.show{display:block;}
+@keyframes loading-move{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.sync-row{
+  display:flex;align-items:center;justify-content:flex-end;
+  gap:6px;margin-bottom:6px;
+}
+.sync-txt{font-size:10px;color:#c8a080;font-family:'IBM Plex Mono',monospace;}
+.sync-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#6dbc8a;
+  box-shadow:0 0 6px #6dbc8a;
+}
+.sync-dot.loading{background:#ffaa00;box-shadow:0 0 6px #ffaa00;animation:blink 1s step-end infinite;}
+.sync-dot.error{background:#ff7070;box-shadow:0 0 6px #ff7070;}
+
 /* ── FORM ── */
 .form-box{
   background:var(--card);
@@ -372,119 +398,60 @@ body{
   padding:0 3px;
   white-space:nowrap;flex-shrink:0;
 }
-.sprocket-track.top-track{
-  animation:roll-right 4s linear infinite;
-}
-.sprocket-track.bot-track{
-  animation:roll-left 4s linear infinite;
-}
-@keyframes roll-right{
-  0%  {transform:translateX(0)}
-  100%{transform:translateX(calc(20px * 20))}
-}
-@keyframes roll-left{
-  0%  {transform:translateX(0)}
-  100%{transform:translateX(calc(-20px * 20))}
-}
-.sprocket{
-  width:14px;height:10px;
-  background:#7a4010;
-  border:1px solid #a05020;
-  border-radius:2px;
-  flex-shrink:0;
-}
+.sprocket-track.top-track{animation:roll-right 4s linear infinite;}
+.sprocket-track.bot-track{animation:roll-left 4s linear infinite;}
+@keyframes roll-right{0%{transform:translateX(0)}100%{transform:translateX(calc(20px * 20))}}
+@keyframes roll-left{0%{transform:translateX(0)}100%{transform:translateX(calc(-20px * 20))}}
+.sprocket{width:14px;height:10px;background:#7a4010;border:1px solid #a05020;border-radius:2px;flex-shrink:0;}
 .film-body{
   background:linear-gradient(180deg,#3d1e00 0%,#2a1400 50%,#3d1e00 100%);
-  border-left:6px solid #5a2e00;
-  border-right:6px solid #5a2e00;
-  padding:20px 18px 16px;
-  position:relative;overflow:hidden;
+  border-left:6px solid #5a2e00;border-right:6px solid #5a2e00;
+  padding:20px 18px 16px;position:relative;overflow:hidden;
 }
 .film-body::before{
   content:'';position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 70% 50% at 50% 0%,rgba(255,160,60,.1),transparent 60%),
+  background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(255,160,60,.1),transparent 60%),
     repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,200,100,.02) 3px,rgba(255,200,100,.02) 4px);
 }
 .film-body::after{
   content:'';position:absolute;inset:0;
   background:linear-gradient(180deg,transparent 48%,rgba(0,0,0,.12) 50%,transparent 52%);
-  animation:scanline 3s linear infinite;
-  pointer-events:none;
+  animation:scanline 3s linear infinite;pointer-events:none;
 }
 @keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
-.frame-mark{
-  position:absolute;width:14px;height:14px;
-  border-color:rgba(255,180,80,.35);border-style:solid;
-}
+.frame-mark{position:absolute;width:14px;height:14px;border-color:rgba(255,180,80,.35);border-style:solid;}
 .frame-mark.tl{top:8px;left:14px;border-width:2px 0 0 2px;}
 .frame-mark.tr{top:8px;right:14px;border-width:2px 2px 0 0;}
 .frame-mark.bl{bottom:8px;left:14px;border-width:0 0 2px 2px;}
 .frame-mark.br{bottom:8px;right:14px;border-width:0 2px 2px 0;}
-.film-title-row{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  margin-bottom:14px;position:relative;z-index:1;
-}
-.film-title{
-  font-family:'Special Elite',serif;
-  font-size:11px;letter-spacing:3px;text-transform:uppercase;
-  color:rgba(255,190,80,.65);
-}
+.film-title-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;position:relative;z-index:1;}
+.film-title{font-family:'Special Elite',serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,190,80,.65);}
 .film-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,180,60,.4);}
-.cd-grid{
-  display:grid;
-  grid-template-columns:1fr 18px 1fr 18px 1fr 18px 1fr;
-  align-items:center;gap:4px;
-  position:relative;z-index:1;margin-bottom:14px;
-}
+.cd-grid{display:grid;grid-template-columns:1fr 18px 1fr 18px 1fr 18px 1fr;align-items:center;gap:4px;position:relative;z-index:1;margin-bottom:14px;}
 .cd-unit{
   background:linear-gradient(180deg,#5a2e00 0%,#3d1e00 50%,#2a1400 100%);
-  border:1px solid rgba(200,100,0,.35);
-  border-radius:6px;padding:10px 4px 8px;
+  border:1px solid rgba(200,100,0,.35);border-radius:6px;padding:10px 4px 8px;
   text-align:center;position:relative;overflow:hidden;
   box-shadow:0 2px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,160,60,.1);
 }
-.cd-unit::before{
-  content:'';position:absolute;left:0;right:0;top:50%;
-  height:1px;background:rgba(0,0,0,.4);z-index:2;
-}
+.cd-unit::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.4);z-index:2;}
 .cd-num{
-  display:block;
-  font-family:'Special Elite',serif;
-  font-size:clamp(28px,7vw,44px);
-  font-weight:400;line-height:1;
-  color:#ffcc60;
+  display:block;font-family:'Special Elite',serif;
+  font-size:clamp(28px,7vw,44px);font-weight:400;line-height:1;color:#ffcc60;
   text-shadow:0 0 20px rgba(255,160,0,.5),0 2px 4px rgba(0,0,0,.7);
   transition:transform .12s ease,opacity .12s ease;
 }
 .cd-num.flip{transform:scaleY(.7);opacity:.4;}
-.cd-name{font-size:8px;color:rgba(255,180,60,.5);margin-top:5px;
-  letter-spacing:2px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
-.cd-sep{
-  text-align:center;font-family:'Special Elite',serif;font-size:22px;
-  color:rgba(255,160,60,.4);line-height:1;
-  animation:blink 1s step-end infinite;margin-bottom:14px;
-}
+.cd-name{font-size:8px;color:rgba(255,180,60,.5);margin-top:5px;letter-spacing:2px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.cd-sep{text-align:center;font-family:'Special Elite',serif;font-size:22px;color:rgba(255,160,60,.4);line-height:1;animation:blink 1s step-end infinite;margin-bottom:14px;}
 @keyframes blink{0%,100%{opacity:.9}50%{opacity:.1}}
-.film-tagline{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  position:relative;z-index:1;
-}
+.film-tagline{display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1;}
 .film-tagline-line{flex:1;height:1px;background:rgba(200,100,0,.2);}
-.film-tagline-text{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;
-  color:rgba(255,180,60,.45);text-transform:uppercase;white-space:nowrap;
-}
-.cd-done{
-  text-align:center;padding:16px;
-  font-size:15px;font-weight:700;font-family:'Special Elite',serif;
-  color:#ffcc60;letter-spacing:1px;display:none;position:relative;z-index:1;
-}
-.film-grain{
-  position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.03;
+.film-tagline-text{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,180,60,.45);text-transform:uppercase;white-space:nowrap;}
+.cd-done{text-align:center;padding:16px;font-size:15px;font-weight:700;font-family:'Special Elite',serif;color:#ffcc60;letter-spacing:1px;display:none;position:relative;z-index:1;}
+.film-grain{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.03;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:200px 200px;
-}
+  background-size:200px 200px;}
 
 /* ── FOOTER ── */
 .footer{text-align:center;margin-top:40px;font-size:11px;color:#c8a080;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;}
@@ -492,42 +459,29 @@ body{
 </head>
 <body>
 
-<!-- Background -->
 <div class="bg-wrap"></div>
 <div class="bg-grid"></div>
 
-<!-- Embers -->
 <script>
 (function(){
   const colors=['#ff7020','#ffaa00','#ffcc40','#ff5010','#ffdd80','#ff3000','#ffee00'];
   for(let i=0;i<60;i++){
-    const e=document.createElement('div');
-    e.className='ember';
-    e.style.left=Math.random()*100+'vw';
-    e.style.bottom='-10px';
-    const dur = 5+Math.random()*12;
-    e.style.animationDuration=dur+'s';
+    const e=document.createElement('div');e.className='ember';
+    e.style.left=Math.random()*100+'vw';e.style.bottom='-10px';
+    const dur=5+Math.random()*12;e.style.animationDuration=dur+'s';
     e.style.animationDelay=(Math.random()*15)+'s';
     const c=colors[Math.floor(Math.random()*colors.length)];
-    e.style.background=c;
-    const sz=(2+Math.random()*5)+'px';
-    e.style.width=sz;e.style.height=sz;
-    e.style.borderRadius='50%';
+    e.style.background=c;const sz=(2+Math.random()*5)+'px';
+    e.style.width=sz;e.style.height=sz;e.style.borderRadius='50%';
     e.style.boxShadow='0 0 '+(4+Math.random()*10)+'px '+c+', 0 0 '+(2+Math.random()*6)+'px #fff8';
-    e.style.opacity = 0.6+Math.random()*0.4;
-    document.body.appendChild(e);
+    e.style.opacity=0.6+Math.random()*0.4;document.body.appendChild(e);
   }
-
-  // ── Rain sparks falling from top ──
   const rainColors=['#40c8ff','#80dfff','#ffffff','#00aaff','#b0eeff','#60d0ff'];
   for(let i=0;i<55;i++){
-    const r=document.createElement('div');
-    r.className='rain-spark';
+    const r=document.createElement('div');r.className='rain-spark';
     r.style.left=(Math.random()*105-2)+'vw';
-    const h=(10+Math.random()*22)+'px';
-    r.style.height=h;
-    const dur=(0.6+Math.random()*1.2).toFixed(2)+'s';
-    r.style.animationDuration=dur;
+    r.style.height=(10+Math.random()*22)+'px';
+    r.style.animationDuration=(0.6+Math.random()*1.2).toFixed(2)+'s';
     r.style.animationDelay=(Math.random()*8).toFixed(2)+'s';
     const rc=rainColors[Math.floor(Math.random()*rainColors.length)];
     r.style.background='linear-gradient(180deg,transparent 0%,'+rc+' 45%,rgba(220,245,255,.9) 100%)';
@@ -555,56 +509,42 @@ body{
 
   <!-- Film Strip Countdown -->
   <div class="film-strip" id="countdownBox">
-    <!-- top sprockets -->
     <div class="film-sprockets top" id="spTop"></div>
-    <!-- film body -->
     <div class="film-body">
       <div class="film-grain"></div>
       <div class="frame-mark tl"></div><div class="frame-mark tr"></div>
       <div class="frame-mark bl"></div><div class="frame-mark br"></div>
-
       <div class="film-title-row">
         <div class="film-dot"></div>
         <div class="film-title">⏳ &nbsp; เหลือเวลาอีก &nbsp; / &nbsp; Days Left</div>
         <div class="film-dot"></div>
       </div>
-
       <div class="cd-grid" id="cdGrid">
-        <div class="cd-unit">
-          <span class="cd-num" id="cdDays">00</span>
-          <div class="cd-name">วัน</div>
-        </div>
+        <div class="cd-unit"><span class="cd-num" id="cdDays">00</span><div class="cd-name">วัน</div></div>
         <div class="cd-sep">:</div>
-        <div class="cd-unit">
-          <span class="cd-num" id="cdHours">00</span>
-          <div class="cd-name">ชั่วโมง</div>
-        </div>
+        <div class="cd-unit"><span class="cd-num" id="cdHours">00</span><div class="cd-name">ชั่วโมง</div></div>
         <div class="cd-sep">:</div>
-        <div class="cd-unit">
-          <span class="cd-num" id="cdMins">00</span>
-          <div class="cd-name">นาที</div>
-        </div>
+        <div class="cd-unit"><span class="cd-num" id="cdMins">00</span><div class="cd-name">นาที</div></div>
         <div class="cd-sep">:</div>
-        <div class="cd-unit">
-          <span class="cd-num" id="cdSecs">00</span>
-          <div class="cd-name">วินาที</div>
-        </div>
+        <div class="cd-unit"><span class="cd-num" id="cdSecs">00</span><div class="cd-name">วินาที</div></div>
       </div>
-
       <div class="cd-done" id="cdDone">🔥 &nbsp; ACTION! &nbsp; ถึงวันอบรมแล้ว · 13:00 น.</div>
-
       <div class="film-tagline">
         <div class="film-tagline-line"></div>
         <div class="film-tagline-text" id="cdSubtitle">วันพุธที่ 25 มีนาคม 2569 · 13:00 น.</div>
         <div class="film-tagline-line"></div>
       </div>
     </div>
-    <!-- bottom sprockets -->
     <div class="film-sprockets bot" id="spBot"></div>
   </div>
 
   <!-- Stat Box -->
   <div class="stat-box">
+    <div class="sync-row">
+      <div class="sync-dot" id="syncDot"></div>
+      <span class="sync-txt" id="syncTxt">กำลังโหลด...</span>
+    </div>
+    <div class="loading-bar show" id="loadingBar"></div>
     <div class="stat-title">📊 สถานะการลงทะเบียน · เป้าหมาย 40 คน</div>
     <div class="progress-wrap">
       <div class="progress-fill" id="progressFill" style="width:0%"></div>
@@ -629,7 +569,6 @@ body{
   <!-- Form -->
   <div class="form-box">
     <div class="form-row">
-      <!-- Name search -->
       <div class="field field-full">
         <label>🔍 ค้นหาชื่อพนักงาน</label>
         <div class="search-wrap">
@@ -646,14 +585,11 @@ body{
           <span class="tag-clear" onclick="clearSelected()">✕</span>
         </div>
       </div>
-
-      <!-- Dept (auto-filled, readonly) -->
       <div class="field field-full">
         <label>🏢 แผนก</label>
         <input type="text" id="deptDisplay" readonly placeholder="— จะแสดงอัตโนมัติ —" style="opacity:.6;cursor:default;">
       </div>
     </div>
-
     <button class="submit-btn" id="submitBtn" onclick="submitReg()" disabled>
       🔥 ยืนยันการลงทะเบียน
     </button>
@@ -673,12 +609,7 @@ body{
     <div style="overflow-x:auto;border:1px solid rgba(255,100,0,.15);border-top:none;border-radius:0 0 var(--radius) var(--radius);">
       <table class="list-table">
         <thead>
-          <tr>
-            <th>#</th>
-            <th>ชื่อ–นามสกุล</th>
-            <th>แผนก</th>
-            <th>เวลา</th>
-          </tr>
+          <tr><th>#</th><th>ชื่อ–นามสกุล</th><th>แผนก</th><th>เวลา</th></tr>
         </thead>
         <tbody id="listBody"></tbody>
       </table>
@@ -690,57 +621,86 @@ body{
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONFIG ──────────────────────────────────────────────────────
+const API_URL = 'https://script.google.com/macros/s/AKfycbyMCAR2XEi9jZeP3RfPQj-NV9_vwsTLfF797_gVU7MDI1wSvUHNEYE4i1mZSMBAGyXu/exec';
+const TARGET = 40;
+const AUTO_REFRESH_MS = 30000; // refresh ทุก 30 วินาที
+
 // ── Employee Data ──────────────────────────────────────────────
 const EMPLOYEES = [{"code":"005","name":"นาย ชัยวัฒน์ ลาภทิพยสุนทร","dept":"สิทธิบัตร"},{"code":"013","name":"นาง เรณู ไชยชุมศักดิ์","dept":"สิทธิบัตร"},{"code":"020","name":"น.ส.ทองคำ อื่มอาจ","dept":"สิทธิบัตร"},{"code":"031","name":"นาง กมลา นาสารี","dept":"สิทธิบัตร"},{"code":"037","name":"น.ส.พัชรา นุ่มตี่","dept":"สิทธิบัตร"},{"code":"050","name":"น.ส.ณิชรุ้งปภา สมบูรณ์","dept":"สิทธิบัตร"},{"code":"062","name":"น.ส.หนึ่งฤทัย วงศ์สำอางค์","dept":"สิทธิบัตร"},{"code":"066","name":"นาย ธนชัย คารงาม","dept":"สิทธิบัตร"},{"code":"068","name":"น.ส. อังคนา อุตะเสนา","dept":"สิทธิบัตร"},{"code":"069","name":"น.ส.ไพรรินทร์ ทันมา","dept":"สิทธิบัตร"},{"code":"074","name":"นาง วรรณรัตณ์ พงษ์พันธ์คุ้ม","dept":"สิทธิบัตร"},{"code":"092","name":"น.ส.อ้อมใจ กิจพลากร","dept":"สิทธิบัตร"},{"code":"094","name":"นาย ใกล้รุ่ง ยิ้มวิไล","dept":"สิทธิบัตร"},{"code":"105","name":"นาง สายทิพย์ ฤดีอเนกสิน","dept":"สิทธิบัตร"},{"code":"113","name":"นาง มาริสา พุฒตาล","dept":"สิทธิบัตร"},{"code":"117","name":"นาย เงินไทย อื่มอาจ","dept":"สิทธิบัตร"},{"code":"133","name":"น.ส. ปทุมพร อุตะเสนา","dept":"สิทธิบัตร"},{"code":"134","name":"นาง ปภานุช ชัยยะ","dept":"สิทธิบัตร"},{"code":"135","name":"นาย สายยนต์ บุญบุตร","dept":"สิทธิบัตร"},{"code":"152","name":"น.ส.ศิริพร แม้นประสิทธิ์","dept":"สิทธิบัตร"},{"code":"188","name":"นาย เฉลิมชัย บุตรโคตร","dept":"สิทธิบัตร"},{"code":"193","name":"นาย ประยุทธ พิมพ์อุบล","dept":"สิทธิบัตร"},{"code":"195","name":"นาย ภัทรวรรธน์ โชติกมาศ","dept":"สิทธิบัตร"},{"code":"210","name":"น.ส.ประภัสสร ใจมั่น","dept":"สิทธิบัตร"},{"code":"231","name":"น.ส.โสภา สงวนนาม","dept":"สิทธิบัตร"},{"code":"234","name":"น.ส.ชญาธร สันโดษ","dept":"สิทธิบัตร"},{"code":"244","name":"น.ส.ศศิกาญจน์ อัศวินทรางกูร","dept":"สิทธิบัตร"},{"code":"245","name":"น.ส.กัญญาภัค ฟักทอง","dept":"สิทธิบัตร"},{"code":"250","name":"นาย ธีรยุทธ สว่างศรี","dept":"สิทธิบัตร"},{"code":"252","name":"นาย อดิศักดิ์ แก่นโสม","dept":"สิทธิบัตร"},{"code":"254","name":"น.ส.สุกัญญา อัศวสุจินดารัตน์","dept":"สิทธิบัตร"},{"code":"256","name":"น.ส.นิยม มาตรา","dept":"สิทธิบัตร"},{"code":"272","name":"นาย สุเมธา อิสริยะเนตร","dept":"สิทธิบัตร"},{"code":"282","name":"นาย สุชาติ กิจรักษา","dept":"สิทธิบัตร"},{"code":"288","name":"น.ส.พิชชานันท์ นิ่มพิบูลย์","dept":"สิทธิบัตร"},{"code":"290","name":"น.ส.รัตติยาภรณ์ สมประสงค์","dept":"สิทธิบัตร"},{"code":"292","name":"น.ส.วิสุนี สุปะติ","dept":"สิทธิบัตร"},{"code":"294","name":"นาง ฐิตธรา สุทธิประภา","dept":"สิทธิบัตร"},{"code":"298","name":"นาย ปรัชญ์ วัฒนสุชาติ","dept":"สิทธิบัตร"},{"code":"305","name":"น.ส.เบญจรินทร์ ทรัพย์บุญมี","dept":"สิทธิบัตร"},{"code":"315","name":"น.ส.สุธาสินี อู๋เพชร","dept":"สิทธิบัตร"},{"code":"316","name":"นาย ก้อง ตันตินวะชัย","dept":"สิทธิบัตร"},{"code":"318","name":"น.ส.ศิริบุศย์ ยิ้มวิไล","dept":"สิทธิบัตร"},{"code":"320","name":"น.ส.เจนนิศา ถิรปภาวิชญ์","dept":"สิทธิบัตร"},{"code":"321","name":"น.ส.เมนา สันธนพิพัฒน์กุล","dept":"สิทธิบัตร"},{"code":"027","name":"นาง กรรณิการ์ มณีจักร","dept":"เครื่องหมายการค้า"},{"code":"032","name":"นาย วันชัย ไชยขันธุ์","dept":"เครื่องหมายการค้า"},{"code":"034","name":"นาย อมรินทร์ ม่วงมณี","dept":"เครื่องหมายการค้า"},{"code":"035","name":"นาย วัฒนา เสาทอง","dept":"เครื่องหมายการค้า"},{"code":"042","name":"น.ส. กนกจันทร์ น้อยบำรุง","dept":"เครื่องหมายการค้า"},{"code":"044","name":"น.ส.รุ่งอรุณ ลือพัฒนสุข","dept":"เครื่องหมายการค้า"},{"code":"046","name":"นาย บรรจง นามโส","dept":"เครื่องหมายการค้า"},{"code":"052","name":"นาย นรวัฒน์ สินเมธาวัฒน์","dept":"เครื่องหมายการค้า"},{"code":"056","name":"น.ส.มนฤดี แพหมอ","dept":"เครื่องหมายการค้า"},{"code":"059","name":"น.ส. ณัฐฐิญา สุวัฑฒนะ","dept":"เครื่องหมายการค้า"},{"code":"063","name":"นาง อมฤตา ปลอดภัย","dept":"เครื่องหมายการค้า"},{"code":"085","name":"น.ส.มานิตา ก้องกิตติงาม","dept":"เครื่องหมายการค้า"},{"code":"103","name":"นาง สมใจ ลีลาสันติธรรม","dept":"เครื่องหมายการค้า"},{"code":"121","name":"น.ส. ฐิตารีย์ มิตรประสิทธิ์","dept":"เครื่องหมายการค้า"},{"code":"123","name":"น.ส.ศรินยา นิลอุบล","dept":"เครื่องหมายการค้า"},{"code":"127","name":"น.ส.นิรัชพร มัชบูลย์","dept":"เครื่องหมายการค้า"},{"code":"129","name":"น.ส.ตริตาภรณ์ รามโกมุท","dept":"เครื่องหมายการค้า"},{"code":"145","name":"น.ส. ภัทรภร อารียะพงษ์พิพัฒน์","dept":"เครื่องหมายการค้า"},{"code":"151","name":"น.ส.จิราพร กรมแสง","dept":"เครื่องหมายการค้า"},{"code":"154","name":"นาย มังกร ตันศุภผล","dept":"เครื่องหมายการค้า"},{"code":"208","name":"นาย ประภาส ต้นบุญ","dept":"เครื่องหมายการค้า"},{"code":"218","name":"น.ส.ณัฐภัสสร ก่อพงษ์พูลสิน","dept":"เครื่องหมายการค้า"},{"code":"227","name":"นาย สุริยา บุญมี","dept":"เครื่องหมายการค้า"},{"code":"229","name":"น.ส.กุลธิภัสร์ เชาว์ธนารัศมิ์","dept":"เครื่องหมายการค้า"},{"code":"248","name":"น.ส.ภัสรา ธรรมโชติวร","dept":"เครื่องหมายการค้า"},{"code":"253","name":"นาย ทิวากร จันที","dept":"เครื่องหมายการค้า"},{"code":"264","name":"นาง วรรัตน์  ชุณหศิลป","dept":"เครื่องหมายการค้า"},{"code":"273","name":"น.ส. พัดชา ฤทธิ์เกษม","dept":"เครื่องหมายการค้า"},{"code":"275","name":"น.ส.อรอลินน์ ฉันท์สิทธิโชค","dept":"เครื่องหมายการค้า"},{"code":"278","name":"น.ส.อนัญญา สิริมณีกร","dept":"เครื่องหมายการค้า"},{"code":"279","name":"น.ส.จุฑามาศ แสงจันทร์ทอง","dept":"เครื่องหมายการค้า"},{"code":"302","name":"ว่าที่ ร.ต. รุ่งโรจน์ กอบกิจวัฒนากูล","dept":"เครื่องหมายการค้า"},{"code":"304","name":"นาย นครินทร์ ลมุนพันธ์","dept":"เครื่องหมายการค้า"},{"code":"306","name":"นาย วรพจน์ เจริญชอบ","dept":"เครื่องหมายการค้า"},{"code":"307","name":"น.ส.รัชนีกร ชุมศรี","dept":"เครื่องหมายการค้า"},{"code":"310","name":"น.ส.อริยา พอจิต","dept":"เครื่องหมายการค้า"},{"code":"311","name":"นาย ณภัทร สมชม","dept":"เครื่องหมายการค้า"},{"code":"323","name":"นาย ดลเดช บุลทวีนันท์","dept":"เครื่องหมายการค้า"},{"code":"325","name":"นาย นพรุจ สะอาดรักษ์","dept":"เครื่องหมายการค้า"},{"code":"072","name":"นาย ปัณณธร มาลากรอง","dept":"เครื่องหมายการค้า"},{"code":"206","name":"นาง กรุณา ถาวรกุล","dept":"เครื่องหมายการค้า"},{"code":"213","name":"น.ส.ธนภร อภิกีรติกุล","dept":"เครื่องหมายการค้า"},{"code":"219","name":"น.ส. อรวรรณ พิบูลย์สุทธิกุล","dept":"เครื่องหมายการค้า"},{"code":"237","name":"น.ส.อรพรรณ ชยานุวัฒน์","dept":"เครื่องหมายการค้า"},{"code":"249","name":"น.ส.สุปิยนันทน์ เทียมบุญธง","dept":"เครื่องหมายการค้า"},{"code":"301","name":"น.ส.รัชณันท์ กฤษสุทธิกุล","dept":"เครื่องหมายการค้า"},{"code":"324","name":"น.ส.ลลิตา รุ่งโรจน์วัฒนา","dept":"เครื่องหมายการค้า"},{"code":"030","name":"นาย ไสว ไชยขันธุ์","dept":"เครื่องหมายการค้า"},{"code":"057","name":"นาย พูลทรัพย์ หลักคำ","dept":"เครื่องหมายการค้า"},{"code":"114","name":"น.ส.จิตติพร มัททวางกูร","dept":"เครื่องหมายการค้า"},{"code":"011","name":"นาย เฉลิมพงษ์ จิตต์ขันติวงศ์","dept":"กฎหมาย"},{"code":"016","name":"นาย วชิระ สาระจันทร์","dept":"กฎหมาย"},{"code":"038","name":"น.ส.ภัทรานิษฐ์ ทรัพย์พนาชัย","dept":"กฎหมาย"},{"code":"049","name":"น.ส.พันธิพา ทอนสูงเนิน","dept":"กฎหมาย"},{"code":"065","name":"น.ส.ศิรินทร์พร เรืองแสงศิลป์","dept":"กฎหมาย"},{"code":"087","name":"น.ส.ยุวดี เนียมเทศ","dept":"กฎหมาย"},{"code":"097","name":"นาย วันชัย ผาไธสง","dept":"กฎหมาย"},{"code":"296","name":"นาย ณัฐกานต์ พงษ์พันธ์ปัญญา","dept":"กฎหมาย"},{"code":"312","name":"น.ส.เฟื่องลดา กัณธรรม","dept":"กฎหมาย"},{"code":"313","name":"น.ส.บุษราคัม กาญจนะ","dept":"กฎหมาย"},{"code":"314","name":"นาย นรสักก์ แก้วโมกุล","dept":"กฎหมาย"},{"code":"082","name":"นาย พุฒิภัค วงศ์ไกรศรีทอง","dept":"ไอที"},{"code":"096","name":"นาย ถาวร ปลอดภัย","dept":"ไอที"},{"code":"283","name":"น.ส.พรรณทิพย์ เข็มทอง","dept":"ไอที"},{"code":"308","name":"นาย ครองชัย ภิชัย","dept":"ไอที"},{"code":"326","name":"นาย ธนกฤต กระบวนศรี","dept":"ไอที"},{"code":"003","name":"นาย เลื่อน พิมพ์อุบล","dept":"จัดการสำนักงาน"},{"code":"043","name":"น.ส. ชญานิศ ทองชุม","dept":"จัดการสำนักงาน"},{"code":"089","name":"น.ส.สิริกร มโนประกิจ","dept":"จัดการสำนักงาน"},{"code":"158","name":"นาย ชยาพล หลักคำ","dept":"จัดการสำนักงาน"},{"code":"239","name":"นาย สุฤทธิ์ คำพินิจ","dept":"จัดการสำนักงาน"},{"code":"036","name":"น.ส.พนิดา โค้วเจริญ","dept":"บัญชี"},{"code":"041","name":"น.ส.น้ำเชื่อม ไมตรีจิตร","dept":"บัญชี"},{"code":"045","name":"น.ส.สุภาว์ ทุนศาสตร์","dept":"บัญชี"},{"code":"088","name":"น.ส.ณัฐธิดา เอี่ยมพลากร","dept":"บัญชี"},{"code":"110","name":"นาง นิภา เที่ยงคืน","dept":"บัญชี"},{"code":"223","name":"น.ส.สุพัฒน์ตรา ลือพัฒนสุข","dept":"บัญชี"},{"code":"259","name":"น.ส.ศลิษา รุ่งโรจน์วัฒนา","dept":"บัญชี"}];
 
-const TARGET = 40;
-const STORAGE_KEY = 'firedrill_2569';
-
 // ── State ──────────────────────────────────────────────────────
-let registered = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let registered = [];
 let selected = null;
+let isSubmitting = false;
 
-// ── Init ───────────────────────────────────────────────────────
-updateStats();
+// ── Sync UI helpers ────────────────────────────────────────────
+function setSyncState(state, txt) {
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncTxt');
+  const bar = document.getElementById('loadingBar');
+  dot.className = 'sync-dot' + (state !== 'ok' ? ' ' + state : '');
+  label.textContent = txt;
+  bar.className = 'loading-bar' + (state === 'loading' ? ' show' : '');
+}
 
-function updateStats(){
+// ── Load from Google Sheets ────────────────────────────────────
+async function loadRegistered(silent = false) {
+  if (!silent) setSyncState('loading', 'กำลังโหลดข้อมูล...');
+  try {
+    const res = await fetch(API_URL + '?t=' + Date.now());
+    const json = await res.json();
+    if (json.ok) {
+      registered = json.data || [];
+      updateStats();
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2,'0');
+      const mm = String(now.getMinutes()).padStart(2,'0');
+      const ss = String(now.getSeconds()).padStart(2,'0');
+      setSyncState('ok', 'อัปเดตล่าสุด ' + hh + ':' + mm + ':' + ss);
+    } else {
+      setSyncState('error', 'โหลดข้อมูลไม่สำเร็จ');
+    }
+  } catch(e) {
+    setSyncState('error', 'เชื่อมต่อไม่ได้');
+  }
+}
+
+// ── Update Stats UI ────────────────────────────────────────────
+function updateStats() {
   const n = registered.length;
-  const pct = Math.min(100, Math.round(n/TARGET*100));
+  const pct = Math.min(100, Math.round(n / TARGET * 100));
   document.getElementById('totalReg').textContent = n;
-  document.getElementById('remaining').textContent = Math.max(0, TARGET-n);
-  document.getElementById('pctLabel').textContent = pct+'%';
-  document.getElementById('progressFill').style.width = pct+'%';
-  document.getElementById('progressLabel').textContent = n+' / '+TARGET+' คน';
-  if(n >= TARGET){
+  document.getElementById('remaining').textContent = Math.max(0, TARGET - n);
+  document.getElementById('pctLabel').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = n + ' / ' + TARGET + ' คน';
+  if (n >= TARGET) {
     document.getElementById('progressFill').style.background = 'linear-gradient(90deg,#00c853,#69f0ae)';
   }
   renderList();
 }
 
 // ── Name cleaner ───────────────────────────────────────────────
-function cleanName(n){
-  return n.replace(/^(ว่าที่\s*ร\.ต\.|น\.ส\.|นาย|นาง|นางสาว)\s*/,'').trim();
+function cleanName(n) {
+  return n.replace(/^(ว่าที่\s*ร\.ต\.|น\.ส\.|นาย|นาง|นางสาว)\s*/, '').trim();
 }
 
 // ── Search ─────────────────────────────────────────────────────
-function onSearch(val){
+function onSearch(val) {
   const dd = document.getElementById('dropdown');
-  if(!val.trim()){dd.classList.remove('show');return;}
+  if (!val.trim()) { dd.classList.remove('show'); return; }
   const q = val.trim().toLowerCase();
-  const results = EMPLOYEES.filter(e=>
-    e.name.toLowerCase().includes(q) ||
-    e.code.includes(q) ||
-    e.dept.toLowerCase().includes(q)
-  ).slice(0,10);
-
-  if(!results.length){
+  const results = EMPLOYEES.filter(e =>
+    e.name.toLowerCase().includes(q) || e.code.includes(q) || e.dept.toLowerCase().includes(q)
+  ).slice(0, 10);
+  if (!results.length) {
     dd.innerHTML = '<div class="dd-empty">ไม่พบชื่อพนักงาน</div>';
   } else {
-    dd.innerHTML = results.map((e,i)=>
+    dd.innerHTML = results.map(e =>
       `<div class="dd-item" onclick="selectEmp('${e.code}')">
         <span>${cleanName(e.name)}</span>
         <span class="dd-dept">${e.dept}</span>
@@ -750,20 +710,20 @@ function onSearch(val){
   dd.classList.add('show');
 }
 
-function selectEmp(code){
-  const emp = EMPLOYEES.find(e=>e.code===code);
-  if(!emp) return;
+function selectEmp(code) {
+  const emp = EMPLOYEES.find(e => e.code === code);
+  if (!emp) return;
   selected = emp;
   document.getElementById('nameSearch').value = cleanName(emp.name);
   document.getElementById('dropdown').classList.remove('show');
   document.getElementById('deptDisplay').value = emp.dept;
   document.getElementById('tagName').textContent = cleanName(emp.name);
-  document.getElementById('tagDept').textContent = emp.dept + ' · รหัส '+emp.code;
+  document.getElementById('tagDept').textContent = emp.dept + ' · รหัส ' + emp.code;
   document.getElementById('selectedTag').classList.add('show');
   document.getElementById('submitBtn').disabled = false;
 }
 
-function clearSelected(){
+function clearSelected() {
   selected = null;
   document.getElementById('nameSearch').value = '';
   document.getElementById('deptDisplay').value = '';
@@ -771,53 +731,75 @@ function clearSelected(){
   document.getElementById('submitBtn').disabled = true;
 }
 
-// ── Submit ─────────────────────────────────────────────────────
-function submitReg(){
-  if(!selected) return;
-  if(registered.find(r=>r.code===selected.code)){
-    showToast('⚠️ '+selected.name+' ลงทะเบียนแล้ว!','error'); return;
-  }
-  const now = new Date();
-  const ts = now.getFullYear()+'-'
-    +String(now.getMonth()+1).padStart(2,'0')+'-'
-    +String(now.getDate()).padStart(2,'0')+' '
-    +String(now.getHours()).padStart(2,'0')+':'
-    +String(now.getMinutes()).padStart(2,'0')+':'
-    +String(now.getSeconds()).padStart(2,'0');
+// ── Submit → POST to Google Sheets ────────────────────────────
+async function submitReg() {
+  if (!selected || isSubmitting) return;
 
-  registered.push({...selected, ts});
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(registered));
-  showToast('✅ ลงทะเบียนสำเร็จ · '+selected.name,'success');
-  clearSelected();
-  updateStats();
+  // Check duplicate ฝั่ง client ก่อน (เร็ว)
+  if (registered.find(r => r.code === selected.code)) {
+    showToast('⚠️ ' + cleanName(selected.name) + ' ลงทะเบียนแล้ว!', 'error');
+    return;
+  }
+
+  isSubmitting = true;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังบันทึก...';
+
+  const now = new Date();
+  const ts = now.getFullYear() + '-'
+    + String(now.getMonth() + 1).padStart(2, '0') + '-'
+    + String(now.getDate()).padStart(2, '0') + ' '
+    + String(now.getHours()).padStart(2, '0') + ':'
+    + String(now.getMinutes()).padStart(2, '0') + ':'
+    + String(now.getSeconds()).padStart(2, '0');
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ code: selected.code, name: selected.name, dept: selected.dept, ts })
+    });
+    const json = await res.json();
+    if (json.ok) {
+      showToast('✅ ลงทะเบียนสำเร็จ · ' + cleanName(selected.name), 'success');
+      clearSelected();
+      await loadRegistered(true);
+    } else {
+      showToast('⚠️ ' + (json.msg || 'เกิดข้อผิดพลาด'), 'error');
+    }
+  } catch(e) {
+    showToast('❌ เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง', 'error');
+  } finally {
+    isSubmitting = false;
+    btn.textContent = '🔥 ยืนยันการลงทะเบียน';
+    btn.disabled = !selected;
+  }
 }
 
-// ── List ───────────────────────────────────────────────────────
-function renderList(){
+// ── Render List ────────────────────────────────────────────────
+function renderList() {
   const body = document.getElementById('listBody');
-  if(!registered.length){
-    body.innerHTML='<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,.3);padding:24px;font-size:13px;">ยังไม่มีผู้ลงทะเบียน</td></tr>';
+  if (!registered.length) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#c8a080;padding:24px;font-size:13px;">ยังไม่มีผู้ลงทะเบียน</td></tr>';
   } else {
-    body.innerHTML = registered.map((r,i)=>
+    body.innerHTML = registered.map((r, i) =>
       `<tr>
-        <td class="num">${i+1}</td>
+        <td class="num">${i + 1}</td>
         <td>${cleanName(r.name)}</td>
         <td><span class="dept-chip dept-${r.dept}">${r.dept}</span></td>
         <td class="time-col">${r.ts}</td>
       </tr>`
     ).join('');
   }
-
-  // Dept stats
   const counts = {};
-  registered.forEach(r=>counts[r.dept]=(counts[r.dept]||0)+1);
+  registered.forEach(r => counts[r.dept] = (counts[r.dept] || 0) + 1);
   document.getElementById('deptStats').innerHTML =
-    Object.entries(counts).map(([d,n])=>
+    Object.entries(counts).map(([d, n]) =>
       `<div class="dept-badge"><span class="cnt">${n}</span>${d}</div>`
     ).join('');
 }
 
-function toggleList(){
+function toggleList() {
   const sec = document.getElementById('listSection');
   const btn = document.getElementById('listToggle');
   const show = sec.classList.toggle('show');
@@ -826,68 +808,57 @@ function toggleList(){
 
 // ── Toast ──────────────────────────────────────────────────────
 let toastTimer;
-function showToast(msg, type=''){
+function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast show '+(type||'');
+  t.className = 'toast show ' + (type || '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 3000);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // Close dropdown on outside click
-document.addEventListener('click', e=>{
-  if(!e.target.closest('.search-wrap'))
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap'))
     document.getElementById('dropdown').classList.remove('show');
 });
 
-// ── Countdown ──────────────────────────────────────────────────
-// Generate sprocket holes - seamless looping tracks
-function makeSprocketTrack(el, cls){
+// ── Auto refresh ───────────────────────────────────────────────
+loadRegistered();
+setInterval(() => loadRegistered(true), AUTO_REFRESH_MS);
+
+// ── Sprockets ──────────────────────────────────────────────────
+function makeSprocketTrack(el, cls) {
   const track = document.createElement('div');
-  track.className = 'sprocket-track '+cls;
-  // duplicate enough for seamless loop (80 sprockets)
-  for(let i=0;i<80;i++){
-    const s=document.createElement('div');s.className='sprocket';track.appendChild(s);
+  track.className = 'sprocket-track ' + cls;
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div'); s.className = 'sprocket'; track.appendChild(s);
   }
   el.appendChild(track);
 }
 makeSprocketTrack(document.getElementById('spTop'), 'top-track');
 makeSprocketTrack(document.getElementById('spBot'), 'bot-track');
 
-// Target: 25 March 2569 (BE) = 25 March 2026 (CE) 13:00 Bangkok time
+// ── Countdown ──────────────────────────────────────────────────
 const TARGET_DATE = new Date('2026-03-25T13:00:00+07:00');
-
-function pad(n){return String(n).padStart(2,'0');}
-
-function flipAnim(el, newVal){
-  const cur = el.textContent;
-  if(cur === newVal) return;
+function pad(n) { return String(n).padStart(2, '0'); }
+function flipAnim(el, newVal) {
+  if (el.textContent === newVal) return;
   el.classList.add('flip');
-  setTimeout(()=>{el.textContent=newVal;el.classList.remove('flip');},150);
+  setTimeout(() => { el.textContent = newVal; el.classList.remove('flip'); }, 150);
 }
-
-function tickCountdown(){
-  const now = new Date();
-  const diff = TARGET_DATE - now;
-
-  if(diff <= 0){
-    document.getElementById('cdGrid').style.display='none';
-    document.getElementById('cdDone').style.display='block';
-    document.getElementById('cdSubtitle').style.display='none';
+function tickCountdown() {
+  const diff = TARGET_DATE - new Date();
+  if (diff <= 0) {
+    document.getElementById('cdGrid').style.display = 'none';
+    document.getElementById('cdDone').style.display = 'block';
+    document.getElementById('cdSubtitle').style.display = 'none';
     return;
   }
-
-  const days  = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const mins  = Math.floor((diff % 3600000)  / 60000);
-  const secs  = Math.floor((diff % 60000)    / 1000);
-
-  flipAnim(document.getElementById('cdDays'),  pad(days));
-  flipAnim(document.getElementById('cdHours'), pad(hours));
-  flipAnim(document.getElementById('cdMins'),  pad(mins));
-  flipAnim(document.getElementById('cdSecs'),  pad(secs));
+  flipAnim(document.getElementById('cdDays'),  pad(Math.floor(diff / 86400000)));
+  flipAnim(document.getElementById('cdHours'), pad(Math.floor((diff % 86400000) / 3600000)));
+  flipAnim(document.getElementById('cdMins'),  pad(Math.floor((diff % 3600000) / 60000)));
+  flipAnim(document.getElementById('cdSecs'),  pad(Math.floor((diff % 60000) / 1000)));
 }
-
 tickCountdown();
 setInterval(tickCountdown, 1000);
 </script>
