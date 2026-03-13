@@ -339,7 +339,9 @@ async function loadRegistered(silent = false) {
     if (!res.ok) throw new Error('http ' + res.status);
     const meta = await res.json();
     const json = JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g,'')))));
-    registered = Array.isArray(json) ? json : [];
+    const fresh = Array.isArray(json) ? json : [];
+    // ไม่มีวันถอยหลัง — ถ้า API ให้น้อยกว่าที่มีอยู่ ให้ ignore
+    if (fresh.length >= registered.length) registered = fresh;
     updateStats();
     const now = new Date();
     setSyncState('ok', 'อัปเดตล่าสุด ' + p2(now.getHours()) + ':' + p2(now.getMinutes()) + ':' + p2(now.getSeconds()));
