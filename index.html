@@ -185,6 +185,56 @@
     white-space:nowrap;
   }
 
+  /* ── Toast Notification ── */
+  .toast-msg{
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;
+    z-index:9999;transition:opacity 0.5s;pointer-events:none;
+    box-shadow:0 4px 20px rgba(0,0,0,0.18);font-family:'Sarabun',sans-serif;
+    white-space:nowrap;max-width:90vw;text-align:center;
+  }
+  .toast-success{background:#e6f9ee;color:#1a7a45;border:1.5px solid #a8e6be;}
+  .toast-warn   {background:#fff8e6;color:#a06000;border:1.5px solid #ffd980;}
+  .toast-error  {background:#fdecea;color:#b02020;border:1.5px solid #f5b4b4;}
+  .toast-info   {background:#e8f0fe;color:#1a56b0;border:1.5px solid #a8c4f5;}
+
+  /* ── Token Modal ── */
+  .token-modal-bg{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
+    z-index:10000;align-items:center;justify-content:center;
+  }
+  .token-modal-bg.open{display:flex;}
+  .token-modal{
+    background:#fff;border-radius:20px;padding:28px 24px;width:90%;max-width:400px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.25);font-family:'Sarabun',sans-serif;
+  }
+  .token-modal h3{font-size:16px;font-weight:700;color:#333;margin:0 0 6px;}
+  .token-modal p{font-size:12px;color:#888;margin:0 0 14px;line-height:1.6;}
+  .token-input{
+    width:100%;padding:10px 14px;border-radius:10px;
+    border:1.5px solid #f0d8c0;font-size:13px;outline:none;
+    font-family:monospace;margin-bottom:12px;box-sizing:border-box;
+  }
+  .token-input:focus{border-color:#e85d04;}
+  .token-btn-row{display:flex;gap:8px;}
+  .token-save-btn{
+    flex:1;padding:11px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,#ff8c42,#e85d04);
+    color:#fff;font-size:14px;font-weight:700;font-family:inherit;
+  }
+  .token-cancel-btn{
+    padding:11px 16px;border-radius:12px;border:1.5px solid #f0d8c0;
+    background:#fff;cursor:pointer;font-size:13px;color:#999;font-family:inherit;
+  }
+  .gear-btn{
+    position:fixed;bottom:80px;right:16px;width:42px;height:42px;
+    border-radius:50%;border:none;cursor:pointer;z-index:500;font-size:18px;
+    background:rgba(255,255,255,0.85);box-shadow:0 2px 10px rgba(0,0,0,0.15);
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px);transition:transform 0.3s;
+  }
+  .gear-btn:hover{transform:rotate(60deg);}
+
   /* ── Responsive ── */
   @media(max-width:400px){
     #fireCard h1{font-size:19px;}
@@ -193,6 +243,26 @@
 </style>
 </head>
 <body>
+
+<!-- Token Setup Modal -->
+<div class="token-modal-bg" id="tokenModalBg">
+  <div class="token-modal">
+    <h3>🔑 ตั้งค่า GitHub Token</h3>
+    <p>ใส่ Personal Access Token เพื่อให้ปุ่มลงทะเบียนบันทึกข้อมูลได้<br>
+    Token จะเก็บใน browser เครื่องนี้เท่านั้น ไม่ได้ upload ขึ้น GitHub</p>
+    <input class="token-input" id="tokenInput" type="password" placeholder="ghp_xxxxxxxxxxxx">
+    <div style="font-size:11px;color:#aaa;margin-bottom:12px;">
+      สร้างได้ที่ GitHub → Settings → Developer settings → Personal access tokens
+    </div>
+    <div class="token-btn-row">
+      <button class="token-cancel-btn" id="tokenCancelBtn">ยกเลิก</button>
+      <button class="token-save-btn" id="tokenSaveBtn">💾 บันทึก Token</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gear button -->
+<button class="gear-btn" id="gearBtn" title="ตั้งค่า Token">⚙️</button>
 
 <!-- Rain canvas (fullscreen) -->
 <canvas id="rainCanvas"></canvas>
@@ -568,8 +638,9 @@
   const GITHUB_USER  = 'puttipak-commits';
   const GITHUB_REPO  = 'fire-drill-2569';
   const JSON_FILE    = 'fire_registrations.json';
-  // ใช้ cache-bust ทุกครั้งเพื่อไม่ให้ GitHub CDN cache เก่า
+  const GITHUB_TOKEN = localStorage.getItem('gh_token') || '';
   const JSON_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${JSON_FILE}`;
+  const API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_FILE}`;
 
   let allRegistrations = [];
 
@@ -666,7 +737,7 @@
         '<span class="result-dept">' + (r.dept||'') + '</span>';
       li.addEventListener('mousedown', e => {
         e.preventDefault();
-        selectEntry(r);
+        window._selectEntry ? window._selectEntry(r) : selectEntry(r);
       });
       resultList.appendChild(li);
     });
@@ -678,7 +749,172 @@
   });
 
   fetchStatus();
-  setInterval(fetchStatus, 30000); // refresh ทุก 30 วิ
+  setInterval(fetchStatus, 30000);
+
+  /* ── Token Modal Logic ── */
+  const tokenModalBg  = document.getElementById('tokenModalBg');
+  const tokenInput    = document.getElementById('tokenInput');
+  const tokenSaveBtn  = document.getElementById('tokenSaveBtn');
+  const tokenCancelBtn= document.getElementById('tokenCancelBtn');
+  const gearBtn       = document.getElementById('gearBtn');
+
+  function openTokenModal(){
+    tokenInput.value = localStorage.getItem('gh_token') || '';
+    tokenModalBg.classList.add('open');
+    setTimeout(()=>tokenInput.focus(), 100);
+  }
+  function closeTokenModal(){
+    tokenModalBg.classList.remove('open');
+  }
+
+  gearBtn.addEventListener('click', openTokenModal);
+  tokenCancelBtn.addEventListener('click', closeTokenModal);
+  tokenModalBg.addEventListener('click', e=>{
+    if(e.target === tokenModalBg) closeTokenModal();
+  });
+
+  tokenSaveBtn.addEventListener('click', ()=>{
+    const t = tokenInput.value.trim();
+    if(!t){ showToast('⚠️ กรุณาใส่ Token ครับ','warn'); return; }
+    if(!t.startsWith('ghp_') && !t.startsWith('github_pat_')){
+      showToast('⚠️ Token ไม่ถูกต้อง ต้องขึ้นต้นด้วย ghp_ หรือ github_pat_','warn'); return;
+    }
+    localStorage.setItem('gh_token', t);
+    closeTokenModal();
+    showToast('✅ บันทึก Token แล้วครับ พร้อมใช้งาน!','success');
+  });
+
+  // ถ้ายังไม่มี token แสดง modal ทันที
+  if(!localStorage.getItem('gh_token')){
+    setTimeout(()=> openTokenModal(), 1200);
+  }
+
+  /* ════════════════════════════════
+     CONFIRM BUTTON — เขียนลง GitHub JSON
+  ════════════════════════════════ */
+  let selectedEntry = null; // entry ที่ถูก select จาก search
+
+  // override selectEntry เพื่อ track selected
+  const _origSelect = selectEntry;
+  // patch: เก็บ selected entry
+  searchInput.addEventListener('input', ()=>{ selectedEntry = null; });
+
+  // patch resultList click เพื่อ set selectedEntry
+  resultList.addEventListener('mousedown', ()=>{});
+
+  // override selectEntry global
+  window._selectEntry = function(r){
+    searchInput.value = r.name;
+    deptInput.value   = r.dept || '—';
+    closeDropdown();
+    selectedEntry = r;
+  };
+
+  // re-patch dropdown items ให้ใช้ _selectEntry
+  const _origInput = searchInput.oninput;
+
+  // Toast notification
+  function showToast(msg, type='success'){
+    let t = document.getElementById('toastMsg');
+    if(!t){ t = document.createElement('div'); t.id='toastMsg'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.className = 'toast-msg toast-' + type;
+    t.style.opacity = '1';
+    setTimeout(()=>{ t.style.opacity='0'; }, 3000);
+  }
+
+  const btnConfirm = document.querySelector('.btn-confirm');
+
+  btnConfirm.addEventListener('click', async ()=>{
+    const name = searchInput.value.trim();
+    const dept = deptInput.value.trim();
+
+    if(!name || name.startsWith('—')){
+      showToast('⚠️ กรุณาค้นหาและเลือกชื่อก่อนครับ', 'warn'); return;
+    }
+    if(!dept || dept.startsWith('—') || dept === ''){
+      showToast('⚠️ ไม่พบข้อมูลแผนก', 'warn'); return;
+    }
+
+    // หา entry จาก allRegistrations
+    const found = allRegistrations.find(r => r.name === name);
+
+    // check ซ้ำ
+    if(found){
+      showToast(`✅ ${name} ลงทะเบียนแล้วครับ (${found.dept})`, 'info'); return;
+    }
+
+    const GITHUB_TOKEN = localStorage.getItem('gh_token') || '';
+    if(!GITHUB_TOKEN){
+      showToast('⚠️ ยังไม่ได้ตั้งค่า GitHub Token กด ⚙️ มุมขวาล่างครับ', 'warn');
+      openTokenModal(); return;
+    }
+
+    btnConfirm.disabled = true;
+    btnConfirm.textContent = '⏳ กำลังบันทึก...';
+
+    try{
+      // 1. GET SHA ของไฟล์ปัจจุบัน
+      const metaRes = await fetch(API_BASE, {
+        headers:{ Authorization:`token ${GITHUB_TOKEN}`, Accept:'application/vnd.github.v3+json' }
+      });
+      const meta = await metaRes.json();
+      const sha  = meta.sha;
+
+      // 2. Decode เนื้อหาปัจจุบัน
+      const currentData = JSON.parse(atob(meta.content.replace(/
+/g,'')));
+
+      // 3. หา code จาก HR list (ถ้ามี) หรือ gen ใหม่
+      const hrEntry = (window._hrList||[]).find(r=>r.name===name);
+      const code = hrEntry ? hrEntry.code : String(Math.floor(Math.random()*900)+100);
+
+      // 4. เพิ่ม entry ใหม่
+      const now = new Date();
+      const ts  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      const newEntry = { code, name, dept, ts };
+      currentData.push(newEntry);
+
+      // 5. เข้ารหัส base64
+      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentData, null, 2))));
+
+      // 6. PUT กลับ GitHub
+      const putRes = await fetch(API_BASE, {
+        method:'PUT',
+        headers:{
+          Authorization:`token ${GITHUB_TOKEN}`,
+          Accept:'application/vnd.github.v3+json',
+          'Content-Type':'application/json'
+        },
+        body: JSON.stringify({
+          message:`reg: ${code} ${name}`,
+          content: newContent,
+          sha
+        })
+      });
+
+      if(!putRes.ok){
+        const err = await putRes.json();
+        throw new Error(err.message || putRes.status);
+      }
+
+      // 7. Success!
+      showToast(`🎉 บันทึกสำเร็จ! ${name} (${dept})`, 'success');
+      searchInput.value = '';
+      deptInput.value   = '';
+      selectedEntry     = null;
+
+      // reload ข้อมูลใหม่ทันที
+      await fetchStatus();
+
+    } catch(e){
+      console.error(e);
+      showToast('❌ บันทึกไม่สำเร็จ: ' + e.message, 'error');
+    } finally{
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = '✅ ยืนยันการลงทะเบียน';
+    }
+  });
 
 })();
 </script>
