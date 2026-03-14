@@ -1028,10 +1028,8 @@
     showToast('✅ บันทึก Token แล้วครับ พร้อมใช้งาน!','success');
   });
 
-  // ถ้ายังไม่มี token แสดง modal ทันที
-  if(!localStorage.getItem('gh_token')){
-    setTimeout(()=> openTokenModal(), 1200);
-  }
+  // token ฝังใน code แล้ว ไม่ต้อง popup อัตโนมัติ
+  // ⚙️ ยังกดได้ถ้าต้องการ override token
 
   /* ════════════════════════════════
      CONFIRM BUTTON — เขียนลง GitHub JSON
@@ -1128,12 +1126,13 @@
       showToast('⚠️ ไม่พบข้อมูลแผนก', 'warn'); return;
     }
 
-    // หา entry จาก allRegistrations (strip คำนำหน้าก่อน compare)
-    const found = allRegistrations.find(r => stripPrefix(r.name) === stripPrefix(name));
+    // normalize ชื่อ: lowercase + strip spaces + strip prefix
+    function normName(n){ return stripPrefix(n||'').replace(/\s+/g,'').toLowerCase(); }
+    const found = allRegistrations.find(r => normName(r.name) === normName(name));
 
     // check ซ้ำ
     if(found){
-      showToast(`✅ ${name} ลงทะเบียนแล้วครับ (${found.dept})`, 'info'); return;
+      showToast(`⚠️ ${name} ลงทะเบียนแล้วครับ (${found.dept})`, 'warn'); return;
     }
 
     const _t = ['ghp_mkhHH','uKsJ8EEZ','T1YDr6NO','Mquf3Rms','q1e2dn2'].join('');
