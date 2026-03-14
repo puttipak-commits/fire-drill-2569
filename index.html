@@ -818,7 +818,7 @@
       const res  = await fetch(JSON_URL + '?t=' + Date.now());
       const data = await res.json();
       allRegistrations = parseRegistrations(data);
-      updateStats(allRegistrations);
+      updateStatsAndTable(allRegistrations);
     } catch(e){
       console.warn('fetch JSON failed:', e);
       // fallback: ลองใช้ GitHub API (ไม่ต้อง token สำหรับ public repo)
@@ -829,7 +829,7 @@
         const raw  = atob(meta.content.replace(/\n/g,''));
         const data2 = JSON.parse(raw);
         allRegistrations = parseRegistrations(data2);
-        updateStats(allRegistrations);
+        updateStatsAndTable(allRegistrations);
       } catch(e2){
         console.warn('GitHub API fallback failed:', e2);
       }
@@ -981,13 +981,15 @@
     renderTable();
   });
 
-  // override updateStats เพื่อ render table ด้วยทุกครั้ง
+  // hook updateStats ให้ render table ด้วยทุกครั้ง
   const _origUpdateStats = updateStats;
-  window.updateStats = function(regs){
+  function updateStatsAndTable(regs){
     _origUpdateStats(regs);
     buildDeptFilters();
     renderTable();
-  };
+  }
+  // replace ทุก call ใน fetchStatus
+  
 
   /* ── Token Modal Logic ── */
   const tokenModalBg  = document.getElementById('tokenModalBg');
@@ -1167,7 +1169,9 @@
       const sha  = meta.sha;
 
       // 2. Decode เนื้อหาปัจจุบัน
-      const currentData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+      // decode base64 → UTF-8 ถูกต้อง
+      const raw = atob(meta.content.replace(/\n/g,''));
+      const currentData = JSON.parse(decodeURIComponent(raw.split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')));
 
       // 3. หา code จาก employees.json
       const empEntry = allEmployees.find(r => r.name === name);
@@ -1180,7 +1184,9 @@
       currentData.push(newEntry);
 
       // 5. เข้ารหัส base64
-      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentData, null, 2))));
+      // encode UTF-8 → base64 ถูกต้อง
+      const jsonStr = JSON.stringify(currentData, null, 2);
+      const newContent = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g,(_,p)=>String.fromCharCode('0x'+p)));
 
       // 6. PUT กลับ GitHub
       const putRes = await fetch(API_BASE, {
@@ -1204,13 +1210,11 @@
 
       // 7. Success! — อัปเดต allRegistrations ทันที ไม่รอ CDN cache
       allRegistrations = currentData;
+      updateStatsAndTable(allRegistrations);
       showToast(`🎉 บันทึกสำเร็จ! ${name} (${dept})`, 'success');
       searchInput.value = '';
       deptInput.value   = '';
       selectedEntry     = null;
-
-      // อัปเดต UI ทันทีจากข้อมูลที่เพิ่งเขียน
-      updateStats(allRegistrations);
 
     } catch(e){
       console.error(e);
