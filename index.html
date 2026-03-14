@@ -190,16 +190,102 @@
   .btn-confirm:hover{opacity:0.92;}
   .btn-confirm:active{transform:scale(0.98);}
 
-  /* ── Rain Slider ── */
-  .slider-row{
-    display:flex;gap:10px;align-items:center;
-    background:rgba(255,255,255,0.55);
-    padding:10px 18px;border-radius:30px;
-    backdrop-filter:blur(4px);
+  /* ── Weather Forecast Widget ── */
+  .wx-card{
+    width:100%;background:#fff;border-radius:20px;
+    padding:16px 16px 14px;border:1px solid #f0e0d0;
+    box-shadow:0 2px 12px rgba(200,100,0,0.07);
   }
-  .slider-label{font-size:12px;color:#6b4c2a;font-weight:600;}
-  #rainSlider{width:130px;}
-  #rainLevelLabel{font-size:11px;color:#e85d04;font-weight:700;min-width:55px;}
+  .wx-header{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:12px;
+  }
+  .wx-title{font-size:12px;color:#b06030;font-weight:700;}
+  .wx-admin-hint{font-size:10px;color:#ccc;font-style:italic;}
+
+  /* scroll strip */
+  .wx-strip{
+    display:flex;gap:7px;
+    overflow-x:auto;padding-bottom:4px;
+    scrollbar-width:thin;scrollbar-color:#f0d8c0 transparent;
+  }
+  .wx-strip::-webkit-scrollbar{height:3px;}
+  .wx-strip::-webkit-scrollbar-thumb{background:#f0d8c0;border-radius:4px;}
+
+  /* day card */
+  .wx-day{
+    flex-shrink:0;width:58px;
+    background:#fdf8f4;border-radius:14px;
+    border:1.5px solid #f0e0d0;
+    padding:8px 4px 7px;text-align:center;
+    cursor:default;
+    transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s;
+    position:relative;
+  }
+  .wx-day.training-day{
+    background:linear-gradient(135deg,#fff5ee,#ffe8d6);
+    border-color:#e85d04;
+    box-shadow:0 2px 12px rgba(232,93,4,0.18);
+  }
+  .wx-day.today-day{
+    background:linear-gradient(135deg,#f0f8ff,#e0f0ff);
+    border-color:#4a90d9;
+  }
+  .wx-day:active{transform:scale(0.95);}
+
+  .wx-dow{font-size:9px;color:#aaa;font-weight:600;letter-spacing:1px;margin-bottom:2px;}
+  .wx-date-num{font-size:13px;font-weight:700;color:#555;margin-bottom:4px;line-height:1;}
+  .wx-icon{font-size:22px;margin-bottom:3px;display:block;line-height:1;}
+  .wx-temp{font-size:10px;color:#888;font-weight:600;}
+  .wx-rain-pct{font-size:9px;color:#4a90d9;margin-top:1px;}
+  .wx-training-badge{
+    position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    background:#e85d04;color:#fff;font-size:8px;font-weight:700;
+    padding:2px 6px;border-radius:8px;white-space:nowrap;letter-spacing:0.5px;
+  }
+
+  /* admin edit popover */
+  .wx-editor{
+    display:none;position:fixed;z-index:30000;
+    background:#fff;border-radius:18px;padding:18px 16px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.22);
+    width:240px;font-family:'Sarabun',sans-serif;
+  }
+  .wx-editor.open{display:block;}
+  .wx-editor h4{font-size:14px;font-weight:700;color:#333;margin:0 0 12px;}
+  .wx-icon-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .wx-icon-btn{
+    width:40px;height:40px;border-radius:10px;border:1.5px solid #f0d8c0;
+    background:#fdf8f4;font-size:20px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all 0.15s;
+  }
+  .wx-icon-btn.selected{border-color:#e85d04;background:#fff0e6;}
+  .wx-temp-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;}
+  .wx-temp-row label{font-size:11px;color:#b06030;font-weight:700;white-space:nowrap;}
+  .wx-temp-inp{
+    flex:1;padding:7px 10px;border-radius:10px;
+    border:1.5px solid #f0d8c0;font-size:13px;outline:none;
+    font-family:inherit;
+  }
+  .wx-temp-inp:focus{border-color:#e85d04;}
+  .wx-rain-row{display:flex;gap:8px;align-items:center;margin-bottom:14px;}
+  .wx-rain-row label{font-size:11px;color:#4a90d9;font-weight:700;white-space:nowrap;}
+  .wx-rain-inp{
+    flex:1;padding:7px 10px;border-radius:10px;
+    border:1.5px solid #d0e4f8;font-size:13px;outline:none;
+    font-family:inherit;
+  }
+  .wx-editor-btns{display:flex;gap:8px;}
+  .wx-save-btn{
+    flex:1;padding:10px;border-radius:12px;border:none;
+    background:linear-gradient(135deg,#ff8c42,#e85d04);
+    color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .wx-cancel-btn{
+    padding:10px 14px;border-radius:12px;border:1.5px solid #f0d8c0;
+    background:#fff;font-size:12px;color:#999;cursor:pointer;font-family:inherit;
+  }
 
   /* ── Search Dropdown ── */
   .search-wrap{position:relative;}
@@ -521,11 +607,31 @@
     <button class="btn-confirm">✅ ยืนยันการลงทะเบียน</button>
   </div>
 
-  <!-- Rain slider -->
-  <div class="slider-row">
-    <label class="slider-label">🌧️ ความหนักฝน</label>
-    <input type="range" id="rainSlider" min="20" max="200" value="80">
-    <span id="rainLevelLabel">ปานกลาง</span>
+  <!-- ═══ WEATHER FORECAST ═══ -->
+  <div class="wx-card">
+    <div class="wx-header">
+      <span class="wx-title">🌤️ พยากรณ์อากาศ 10 วัน · กรุงเทพฯ</span>
+      <span class="wx-admin-hint" id="wxAdminHint">กดค้างที่วันเพื่อแก้ไข (Admin)</span>
+    </div>
+    <div class="wx-strip" id="wxStrip"></div>
+  </div>
+
+  <!-- weather editor popover -->
+  <div class="wx-editor" id="wxEditor">
+    <h4 id="wxEditorTitle">แก้ไขสภาพอากาศ</h4>
+    <div class="wx-icon-grid" id="wxIconGrid"></div>
+    <div class="wx-temp-row">
+      <label>🌡️ อุณหภูมิ</label>
+      <input class="wx-temp-inp" id="wxTempInp" type="text" placeholder="เช่น 32°C">
+    </div>
+    <div class="wx-rain-row">
+      <label>🌧️ ฝน %</label>
+      <input class="wx-rain-inp" id="wxRainInp" type="number" min="0" max="100" placeholder="0–100">
+    </div>
+    <div class="wx-editor-btns">
+      <button class="wx-cancel-btn" id="wxCancelBtn">ยกเลิก</button>
+      <button class="wx-save-btn" id="wxSaveBtn">💾 บันทึก</button>
+    </div>
   </div>
 
   <!-- ═══ REGISTERED LIST TABLE ═══ -->
@@ -824,11 +930,194 @@
   }
   drawRain();
 
-  document.getElementById('rainSlider').addEventListener('input',function(){
-    const v=parseInt(this.value); dropCount=v;
-    document.getElementById('rainLevelLabel').textContent =
-      v<=40?'โปร่ง':v<=80?'ปานกลาง':v<=140?'หนัก':'หนักมาก!';
-    initDrops(v);
+  /* ════════════════════════════════
+     WEATHER FORECAST WIDGET
+     - 10 วัน: Mar 14–25 (วันอบรม)
+     - Admin: กดค้าง 600ms → PIN → editor
+     - ฝน canvas sync กับ % ฝน
+  ════════════════════════════════ */
+  const WX_KEY   = 'dsb_wx_2569';
+  const WX_ICONS = [
+    {e:'☀️', label:'แดดจัด',   rain:0  },
+    {e:'🌤️', label:'มีเมฆบ้าง', rain:15 },
+    {e:'⛅', label:'เมฆมาก',  rain:30 },
+    {e:'🌦️', label:'ฝนปรอย',  rain:55 },
+    {e:'🌧️', label:'ฝนหนัก',  rain:85 },
+    {e:'⛈️', label:'พายุ',    rain:100 },
+  ];
+
+  /* default 11 วัน Mar 14–25 */
+  const WX_DAYS_DEF = [
+    {icon:'🌤️',temp:'33°C',rainPct:10},
+    {icon:'☀️', temp:'34°C',rainPct:5 },
+    {icon:'☀️', temp:'35°C',rainPct:0 },
+    {icon:'⛅', temp:'33°C',rainPct:20},
+    {icon:'🌦️',temp:'31°C',rainPct:50},
+    {icon:'🌧️',temp:'29°C',rainPct:80},
+    {icon:'⛅', temp:'32°C',rainPct:25},
+    {icon:'🌤️',temp:'33°C',rainPct:10},
+    {icon:'☀️', temp:'34°C',rainPct:5 },
+    {icon:'🌤️',temp:'33°C',rainPct:15},
+    {icon:'☀️', temp:'34°C',rainPct:5 }, /* Mar 25 วันอบรม */
+  ];
+
+  const DOW_TH  = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const START_D = new Date('2026-03-14T00:00:00+07:00');
+  const TRAIN_D = new Date('2026-03-25T00:00:00+07:00');
+
+  function wxLoad(){
+    try{ return JSON.parse(localStorage.getItem(WX_KEY)) || WX_DAYS_DEF.map(d=>({...d})); }
+    catch(e){ return WX_DAYS_DEF.map(d=>({...d})); }
+  }
+  function wxSave(data){ localStorage.setItem(WX_KEY, JSON.stringify(data)); }
+
+  let wxData = wxLoad();
+
+  /* rain drops ตาม % */
+  function rainPctToDrops(pct){
+    if(pct <= 5)  return 0;
+    if(pct <= 20) return 30;
+    if(pct <= 50) return 70;
+    if(pct <= 80) return 130;
+    return 200;
+  }
+  function applyTodayRain(){
+    const today = new Date();
+    const diff  = Math.round((new Date(today.getFullYear(),today.getMonth(),today.getDate()) - START_D) / 86400000);
+    const idx   = Math.max(0, Math.min(diff, wxData.length-1));
+    const drops = rainPctToDrops(wxData[idx].rainPct);
+    dropCount   = drops;
+    initDrops(drops);
+  }
+  applyTodayRain();
+
+  /* build strip */
+  function buildStrip(){
+    const strip = document.getElementById('wxStrip');
+    strip.innerHTML = '';
+    wxData.forEach((d, i)=>{
+      const date = new Date(START_D.getTime() + i*86400000);
+      const dow  = DOW_TH[date.getDay()];
+      const dd   = date.getDate();
+      const mm   = date.getMonth()+1;
+      const isTrain   = date.toDateString() === TRAIN_D.toDateString();
+      const isToday   = date.toDateString() === new Date().toDateString();
+
+      const card = document.createElement('div');
+      card.className = 'wx-day' + (isTrain?' training-day':'') + (isToday?' today-day':'');
+      card.dataset.idx = i;
+
+      card.innerHTML = `
+        ${isTrain?'<div class="wx-training-badge">🔥 อบรม</div>':''}
+        <div class="wx-dow">${isToday?'วันนี้':dow}</div>
+        <div class="wx-date-num">${dd}/${mm}</div>
+        <span class="wx-icon">${d.icon}</span>
+        <div class="wx-temp">${d.temp}</div>
+        <div class="wx-rain-pct">${d.rainPct>0?'💧'+d.rainPct+'%':''}</div>
+      `;
+
+      /* long press → admin edit */
+      let pressTimer = null;
+      const startPress = ()=>{ pressTimer = setTimeout(()=>{ pressTimer=null; openWxEditor(i, card); }, 600); };
+      const endPress   = ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } };
+      card.addEventListener('mousedown',  startPress);
+      card.addEventListener('touchstart', startPress, {passive:true});
+      card.addEventListener('mouseup',    endPress);
+      card.addEventListener('mouseleave', endPress);
+      card.addEventListener('touchend',   endPress);
+
+      strip.appendChild(card);
+    });
+
+    /* scroll วันอบรมให้เห็น */
+    const trainCard = strip.querySelector('.training-day');
+    if(trainCard) setTimeout(()=> trainCard.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}), 300);
+  }
+  buildStrip();
+
+  /* ── Admin editor ── */
+  let wxEditIdx = -1;
+  let wxEditorPinDone = false;
+
+  function openWxEditor(idx, cardEl){
+    /* ต้อง unlock PIN ก่อน */
+    if(!wxEditorPinDone){
+      openPinModal(()=>{
+        wxEditorPinDone = true;
+        showWxEditor(idx, cardEl);
+      });
+    } else {
+      showWxEditor(idx, cardEl);
+    }
+  }
+
+  function showWxEditor(idx, cardEl){
+    wxEditIdx = idx;
+    const d    = wxData[idx];
+    const date = new Date(START_D.getTime() + idx*86400000);
+    document.getElementById('wxEditorTitle').textContent =
+      `แก้ไข ${date.getDate()}/${date.getMonth()+1} (${DOW_TH[date.getDay()]})`;
+
+    /* icon grid */
+    const grid = document.getElementById('wxIconGrid');
+    grid.innerHTML = '';
+    WX_ICONS.forEach(ic=>{
+      const btn = document.createElement('button');
+      btn.className = 'wx-icon-btn' + (ic.e===d.icon?' selected':'');
+      btn.textContent = ic.e;
+      btn.title = ic.label;
+      btn.onclick = ()=>{
+        grid.querySelectorAll('.wx-icon-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        /* auto-fill rain% */
+        const ri = document.getElementById('wxRainInp');
+        if(!ri.value || ri.value==0) ri.value = ic.rain;
+      };
+      grid.appendChild(btn);
+    });
+
+    document.getElementById('wxTempInp').value = d.temp;
+    document.getElementById('wxRainInp').value = d.rainPct;
+
+    /* position near card */
+    const rect = cardEl.getBoundingClientRect();
+    const editor = document.getElementById('wxEditor');
+    editor.classList.add('open');
+    const ew = 240, eh = 280;
+    let left = rect.left + rect.width/2 - ew/2;
+    let top  = rect.top  - eh - 10;
+    if(top < 8)       top  = rect.bottom + 10;
+    if(left < 8)      left = 8;
+    if(left+ew > window.innerWidth-8) left = window.innerWidth-ew-8;
+    editor.style.left = left+'px';
+    editor.style.top  = top +'px';
+  }
+
+  function closeWxEditor(){
+    document.getElementById('wxEditor').classList.remove('open');
+    wxEditIdx = -1;
+  }
+
+  document.getElementById('wxCancelBtn').onclick = closeWxEditor;
+  document.getElementById('wxSaveBtn').onclick = ()=>{
+    if(wxEditIdx < 0) return;
+    const selIcon = document.querySelector('#wxIconGrid .wx-icon-btn.selected');
+    wxData[wxEditIdx].icon     = selIcon ? selIcon.textContent : wxData[wxEditIdx].icon;
+    wxData[wxEditIdx].temp     = document.getElementById('wxTempInp').value.trim() || wxData[wxEditIdx].temp;
+    wxData[wxEditIdx].rainPct  = parseInt(document.getElementById('wxRainInp').value) || 0;
+    wxSave(wxData);
+    closeWxEditor();
+    buildStrip();
+    applyTodayRain();
+    showToast('✅ บันทึกพยากรณ์แล้วครับ', 'success');
+  };
+
+  /* close editor when clicking outside */
+  document.addEventListener('mousedown', e=>{
+    const ed = document.getElementById('wxEditor');
+    if(ed.classList.contains('open') && !ed.contains(e.target)){
+      closeWxEditor();
+    }
   });
 
   /* ════════════════════════════════
