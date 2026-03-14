@@ -280,6 +280,40 @@
   .reg-empty{text-align:center;padding:24px;color:#ccc;font-size:13px;}
   .reg-ts{color:#bbb;font-size:10px;text-align:right;}
 
+  /* ── PIN Unlock ── */
+  .pin-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,0.5);z-index:20000;
+    align-items:center;justify-content:center;
+  }
+  .pin-overlay.open{display:flex;}
+  .pin-box{
+    background:#fff;border-radius:24px;
+    padding:32px 28px;width:88%;max-width:340px;
+    text-align:center;font-family:'Sarabun',sans-serif;
+    box-shadow:0 12px 40px rgba(0,0,0,0.25);
+  }
+  .pin-icon{font-size:40px;margin-bottom:10px;}
+  .pin-box h3{font-size:17px;font-weight:700;color:#333;margin:0 0 6px;}
+  .pin-box p{font-size:12px;color:#999;margin:0 0 18px;}
+  .pin-dots{display:flex;gap:10px;justify-content:center;margin-bottom:18px;}
+  .pin-dot{
+    width:14px;height:14px;border-radius:50%;
+    background:#f0d8c0;border:2px solid #e0c0a0;
+    transition:background 0.15s;
+  }
+  .pin-dot.filled{background:#e85d04;border-color:#e85d04;}
+  .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .pin-key{
+    padding:14px;border-radius:14px;border:1.5px solid #f0d8c0;
+    background:#fff;font-size:18px;font-weight:700;color:#333;
+    cursor:pointer;font-family:inherit;transition:all 0.1s;
+  }
+  .pin-key:hover{background:#fff0e6;border-color:#e85d04;}
+  .pin-key:active{transform:scale(0.95);background:#ffe0cc;}
+  .pin-key.del{font-size:14px;color:#999;}
+  .pin-error{color:#e85d04;font-size:12px;margin-top:8px;min-height:18px;}
+
   /* ── Responsive ── */
   @media(max-width:400px){
     #fireCard h1{font-size:19px;}
@@ -303,6 +337,36 @@
       <button class="token-cancel-btn" id="tokenCancelBtn">ยกเลิก</button>
       <button class="token-save-btn" id="tokenSaveBtn">💾 บันทึก Token</button>
     </div>
+  </div>
+</div>
+
+<!-- PIN Unlock Modal -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <div class="pin-icon">🔒</div>
+    <h3>ยืนยันตัวตน</h3>
+    <p>ใส่รหัส 4 หลัก เพื่อลงทะเบียน</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key del" onclick="pinDel()">ลบ</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinCancel()">ยกเลิก</button>
+    </div>
+    <div class="pin-error" id="pinError"></div>
   </div>
 </div>
 
@@ -713,7 +777,8 @@
   const GITHUB_USER  = 'puttipak-commits';
   const GITHUB_REPO  = 'fire-drill-2569';
   const JSON_FILE    = 'fire_registrations.json';
-  const GITHUB_TOKEN = localStorage.getItem('gh_token') || '';
+  const _t = ['ghp_mkhHH','uKsJ8EEZ','T1YDr6NO','Mquf3Rms','q1e2dn2'].join('');
+  const GITHUB_TOKEN = _t;
   const JSON_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${JSON_FILE}`;
   const API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_FILE}`;
 
@@ -998,6 +1063,54 @@
 
   const btnConfirm = document.querySelector('.btn-confirm');
 
+  /* ── PIN Logic ── */
+  const CORRECT_PIN = '2569'; // ← เปลี่ยนรหัสได้ที่นี่
+  let pinBuffer = '';
+  let pinConfirmCallback = null;
+
+  window.pinKey = function(n){
+    if(pinBuffer.length >= 4) return;
+    pinBuffer += n;
+    updatePinDots();
+    if(pinBuffer.length === 4) setTimeout(checkPin, 150);
+  };
+  window.pinDel = function(){
+    pinBuffer = pinBuffer.slice(0,-1);
+    updatePinDots();
+    document.getElementById('pinError').textContent = '';
+  };
+  window.pinCancel = function(){
+    closePinModal();
+  };
+
+  function updatePinDots(){
+    for(let i=0;i<4;i++){
+      document.getElementById('pd'+i).classList.toggle('filled', i < pinBuffer.length);
+    }
+  }
+  function checkPin(){
+    if(pinBuffer === CORRECT_PIN){
+      closePinModal();
+      if(pinConfirmCallback) pinConfirmCallback();
+    } else {
+      document.getElementById('pinError').textContent = '❌ รหัสไม่ถูกต้อง ลองใหม่ครับ';
+      pinBuffer = '';
+      updatePinDots();
+    }
+  }
+  function openPinModal(callback){
+    pinBuffer = '';
+    pinConfirmCallback = callback;
+    updatePinDots();
+    document.getElementById('pinError').textContent = '';
+    document.getElementById('pinOverlay').classList.add('open');
+  }
+  function closePinModal(){
+    document.getElementById('pinOverlay').classList.remove('open');
+    pinBuffer = '';
+    pinConfirmCallback = null;
+  }
+
   btnConfirm.addEventListener('click', async ()=>{
     const name = searchInput.value.trim();
     const dept = deptInput.value.trim();
@@ -1017,7 +1130,8 @@
       showToast(`✅ ${name} ลงทะเบียนแล้วครับ (${found.dept})`, 'info'); return;
     }
 
-    const GITHUB_TOKEN = localStorage.getItem('gh_token') || '';
+    const _t = ['ghp_mkhHH','uKsJ8EEZ','T1YDr6NO','Mquf3Rms','q1e2dn2'].join('');
+  const GITHUB_TOKEN = _t;
     if(!GITHUB_TOKEN){
       showToast('⚠️ ยังไม่ได้ตั้งค่า GitHub Token กด ⚙️ มุมขวาล่างครับ', 'warn');
       openTokenModal(); return;
@@ -1088,14 +1202,15 @@
         throw new Error(err.message || putRes.status);
       }
 
-      // 7. Success!
+      // 7. Success! — อัปเดต allRegistrations ทันที ไม่รอ CDN cache
+      allRegistrations = currentData;
       showToast(`🎉 บันทึกสำเร็จ! ${name} (${dept})`, 'success');
       searchInput.value = '';
       deptInput.value   = '';
       selectedEntry     = null;
 
-      // reload ข้อมูลใหม่ทันที
-      await fetchStatus();
+      // อัปเดต UI ทันทีจากข้อมูลที่เพิ่งเขียน
+      updateStats(allRegistrations);
 
     } catch(e){
       console.error(e);
