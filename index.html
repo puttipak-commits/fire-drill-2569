@@ -235,6 +235,51 @@
   }
   .gear-btn:hover{transform:rotate(60deg);}
 
+  /* ── Registered Table ── */
+  .reg-section{
+    width:100%;max-width:480px;background:#fff;
+    border-radius:20px;padding:20px;border:1px solid #f0e0d0;
+  }
+  .reg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+  .reg-title{font-size:13px;color:#b06030;font-weight:700;}
+  .reg-count{font-size:11px;color:#e85d04;font-weight:700;background:#fff0e6;padding:3px 10px;border-radius:10px;}
+  .reg-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .filter-btn{
+    padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;
+    border:1.5px solid #f0d8c0;background:#fff;color:#b06030;cursor:pointer;
+    transition:all 0.15s;font-family:inherit;
+  }
+  .filter-btn.active{background:#e85d04;color:#fff;border-color:#e85d04;}
+  .reg-search{
+    width:100%;padding:8px 12px;border-radius:10px;
+    border:1.5px solid #f0d8c0;font-size:12px;
+    outline:none;margin-bottom:12px;font-family:inherit;box-sizing:border-box;
+  }
+  .reg-search:focus{border-color:#e85d04;}
+  .reg-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .reg-table th{
+    padding:8px 10px;text-align:left;font-size:11px;font-weight:700;
+    color:#b06030;border-bottom:2px solid #f0d8c0;background:#fdf8f4;
+  }
+  .reg-table th:first-child{border-radius:8px 0 0 0;}
+  .reg-table th:last-child{border-radius:0 8px 0 0;text-align:right;}
+  .reg-table td{
+    padding:9px 10px;border-bottom:1px solid #f8ede4;
+    vertical-align:middle;color:#444;
+  }
+  .reg-table tr:last-child td{border-bottom:none;}
+  .reg-table tr:hover td{background:#fff8f4;}
+  .dept-tag{
+    display:inline-block;padding:2px 8px;border-radius:8px;
+    font-size:10px;font-weight:700;
+  }
+  .dept-it    {background:#e8f0fe;color:#1a56b0;}
+  .dept-tm    {background:#fce8e6;color:#c0392b;}
+  .dept-pat   {background:#e6f4ea;color:#1e7e34;}
+  .dept-other {background:#f0e6ff;color:#6b21a8;}
+  .reg-empty{text-align:center;padding:24px;color:#ccc;font-size:13px;}
+  .reg-ts{color:#bbb;font-size:10px;text-align:right;}
+
   /* ── Responsive ── */
   @media(max-width:400px){
     #fireCard h1{font-size:19px;}
@@ -371,6 +416,36 @@
     <label class="slider-label">🌧️ ความหนักฝน</label>
     <input type="range" id="rainSlider" min="20" max="200" value="80">
     <span id="rainLevelLabel">ปานกลาง</span>
+  </div>
+
+  <!-- ═══ REGISTERED LIST TABLE ═══ -->
+  <div class="reg-section">
+    <div class="reg-header">
+      <span class="reg-title">📋 รายชื่อผู้ลงทะเบียน</span>
+      <span class="reg-count" id="regCount">0 คน</span>
+    </div>
+
+    <!-- Filter by dept -->
+    <div class="reg-filter" id="deptFilter">
+      <button class="filter-btn active" data-dept="all" onclick="filterDept('all',this)">ทั้งหมด</button>
+    </div>
+
+    <!-- Search in table -->
+    <input class="reg-search" id="regSearch" type="text" placeholder="🔍 ค้นหาชื่อในรายการ...">
+
+    <table class="reg-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ชื่อ-นามสกุล</th>
+          <th>แผนก</th>
+          <th>เวลา</th>
+        </tr>
+      </thead>
+      <tbody id="regTableBody">
+        <tr><td colspan="4" class="reg-empty">⏳ กำลังโหลด...</td></tr>
+      </tbody>
+    </table>
   </div>
 
 </div><!-- /page -->
@@ -719,7 +794,9 @@
     deptInput.value = '';
     if(!q || allRegistrations.length === 0) return;
 
-    const matches = allRegistrations.filter(r =>
+    // search จาก employees (master list) ก่อน ถ้าไม่มีค่อย fallback allRegistrations
+    const sourceList = allEmployees.length > 0 ? allEmployees : allRegistrations;
+    const matches = sourceList.filter(r =>
       (r.name || '').toLowerCase().includes(q)
     );
 
@@ -748,8 +825,104 @@
     if(!searchInput.contains(e.target)) closeDropdown();
   });
 
+  /* ── โหลด employees.json (master list สำหรับ search) ── */
+  const EMP_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/employees.json`;
+  let allEmployees = [];
+
+  async function fetchEmployees(){
+    try{
+      const res  = await fetch(EMP_URL + '?t=' + Date.now());
+      allEmployees = await res.json();
+      console.log('employees loaded:', allEmployees.length);
+    } catch(e){ console.warn('fetchEmployees failed:', e); }
+  }
+  fetchEmployees();
+
   fetchStatus();
   setInterval(fetchStatus, 30000);
+
+  /* ════════════════════════════════
+     REGISTERED TABLE
+  ════════════════════════════════ */
+  let filteredDept = 'all';
+  let tableSearch  = '';
+
+  function deptClass(dept){
+    if(!dept) return 'dept-other';
+    if(dept.includes('ไอที')||dept.includes('IT')) return 'dept-it';
+    if(dept.includes('เครื่องหมาย')||dept.includes('TM')) return 'dept-tm';
+    if(dept.includes('สิทธิบัตร')||dept.includes('Patent')) return 'dept-pat';
+    return 'dept-other';
+  }
+
+  function formatTime(ts){
+    if(!ts) return '—';
+    // ts format: "2026-03-14 15:30:00"
+    const parts = ts.split(' ');
+    if(parts.length < 2) return ts;
+    const t = parts[1].substring(0,5); // HH:MM
+    const d = parts[0].substring(5);   // MM-DD
+    return `${d} ${t}`;
+  }
+
+  function renderTable(){
+    const tbody = document.getElementById('regTableBody');
+    let rows = allRegistrations.slice().reverse(); // ล่าสุดขึ้นก่อน
+
+    // filter dept
+    if(filteredDept !== 'all')
+      rows = rows.filter(r => (r.dept||'') === filteredDept);
+
+    // filter search
+    if(tableSearch)
+      rows = rows.filter(r => (r.name||'').toLowerCase().includes(tableSearch));
+
+    document.getElementById('regCount').textContent = allRegistrations.length + ' คน';
+
+    if(rows.length === 0){
+      tbody.innerHTML = '<tr><td colspan="4" class="reg-empty">— ไม่พบรายการ —</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map((r,i) => `
+      <tr>
+        <td style="color:#ccc;font-size:10px;">${allRegistrations.length - allRegistrations.indexOf(r)}</td>
+        <td style="font-weight:600;color:#333;">${r.name||'—'}</td>
+        <td><span class="dept-tag ${deptClass(r.dept)}">${r.dept||'—'}</span></td>
+        <td class="reg-ts">${formatTime(r.ts)}</td>
+      </tr>`).join('');
+  }
+
+  function buildDeptFilters(){
+    const depts = [...new Set(allRegistrations.map(r=>r.dept).filter(Boolean))].sort();
+    const container = document.getElementById('deptFilter');
+    // keep "ทั้งหมด" button, add dept buttons
+    const existing = depts.map(d =>
+      `<button class="filter-btn" data-dept="${d}" onclick="filterDept('${d}',this)">${d}</button>`
+    ).join('');
+    container.innerHTML =
+      `<button class="filter-btn active" data-dept="all" onclick="filterDept('all',this)">ทั้งหมด</button>` + existing;
+  }
+
+  window.filterDept = function(dept, btn){
+    filteredDept = dept;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable();
+  };
+
+  document.getElementById('regSearch').addEventListener('input', function(){
+    tableSearch = this.value.trim().toLowerCase();
+    renderTable();
+  });
+
+  // override updateStats เพื่อ render table ด้วยทุกครั้ง
+  const _origUpdateStats = updateStats;
+  window.updateStats = function(regs){
+    _origUpdateStats(regs);
+    buildDeptFilters();
+    renderTable();
+  };
 
   /* ── Token Modal Logic ── */
   const tokenModalBg  = document.getElementById('tokenModalBg');
