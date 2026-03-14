@@ -803,43 +803,36 @@
     return [];
   }
 
-  function updateStats(regs){
-    const count  = regs.length;
-    const remain = Math.max(0, TARGET_COUNT - count);
-    const pct    = Math.round((count / TARGET_COUNT) * 100);
-    document.getElementById('statReg').textContent      = count;
-    document.getElementById('statRemain').textContent   = remain;
-    document.getElementById('statPct').textContent      = pct + '%';
-    document.getElementById('progressText').textContent = `${count} / ${TARGET_COUNT} คน`;
-    document.getElementById('progressFill').style.width = Math.min(100, pct) + '%';
-  }
-
-  function updateSearchResult(name, dept){
-    document.getElementById('deptInput').value = dept || '— ไม่พบข้อมูล —';
-  }
+  /* updateStats/updateSearchResult moved into refreshUI */
 
   async function fetchStatus(){
     try{
-      // cache-bust ด้วย timestamp
-      const res  = await fetch(JSON_URL + '?t=' + Date.now());
-      const data = await res.json();
-      allRegistrations = parseRegistrations(data);
-      updateStatsAndTable(allRegistrations);
+      // fetch ตรงจาก raw GitHub + cache-bust
+      const res = await fetch(JSON_URL + '?t=' + Date.now());
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      allRegistrations = JSON.parse(text);
     } catch(e){
-      console.warn('fetch JSON failed:', e);
-      // fallback: ลองใช้ GitHub API (ไม่ต้อง token สำหรับ public repo)
-      try{
-        const api = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_FILE}`;
-        const r2  = await fetch(api);
-        const meta = await r2.json();
-        const raw  = atob(meta.content.replace(/\n/g,''));
-        const data2 = JSON.parse(raw);
-        allRegistrations = parseRegistrations(data2);
-        updateStatsAndTable(allRegistrations);
-      } catch(e2){
-        console.warn('GitHub API fallback failed:', e2);
-      }
+      console.warn('fetchStatus error:', e);
     }
+    refreshUI();
+  }
+
+  function refreshUI(){
+    const regs  = allRegistrations;
+    const count  = regs.length;
+    const remain = Math.max(0, TARGET_COUNT - count);
+    const pct    = Math.round((count / TARGET_COUNT) * 100);
+    // stats
+    document.getElementById('statReg').textContent       = count;
+    document.getElementById('statRemain').textContent    = remain;
+    document.getElementById('statPct').textContent       = pct + '%';
+    document.getElementById('progressText').textContent  = count + ' / ' + TARGET_COUNT + ' คน';
+    document.getElementById('progressFill').style.width  = Math.min(100, pct) + '%';
+    document.getElementById('regCount').textContent      = count + ' คน';
+    // table
+    buildDeptFilters();
+    renderTable();
   }
 
   // ── Search with Dropdown ──
@@ -1223,8 +1216,8 @@
 
       // 7. Success! — อัปเดต allRegistrations ทันที ไม่รอ CDN cache
       allRegistrations = currentData;
-      refreshUI();
       showToast(`🎉 บันทึกสำเร็จ! ${name} (${dept})`, 'success');
+      refreshUI();
       searchInput.value = '';
       deptInput.value   = '';
       selectedEntry     = null;
