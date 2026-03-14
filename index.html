@@ -981,14 +981,6 @@
     renderTable();
   });
 
-  // hook updateStats ให้ render table ด้วยทุกครั้ง
-  const _origUpdateStats = updateStats;
-  function updateStatsAndTable(regs){
-    _origUpdateStats(regs);
-    buildDeptFilters();
-    renderTable();
-  }
-  // replace ทุก call ใน fetchStatus
   
 
   /* ── Token Modal Logic ── */
@@ -1212,7 +1204,7 @@
 
       // 7. Success! — อัปเดต allRegistrations ทันที ไม่รอ CDN cache
       allRegistrations = currentData;
-      updateStatsAndTable(allRegistrations);
+      refreshUI();
       showToast(`🎉 บันทึกสำเร็จ! ${name} (${dept})`, 'success');
       searchInput.value = '';
       deptInput.value   = '';
