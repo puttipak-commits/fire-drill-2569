@@ -484,10 +484,16 @@
 
   <!-- ═══ REGISTERED LIST TABLE ═══ -->
   <div class="reg-section">
-    <div class="reg-header">
+    <div class="reg-header" onclick="toggleRegList()" style="cursor:pointer;">
       <span class="reg-title">📋 รายชื่อผู้ลงทะเบียน</span>
-      <span class="reg-count" id="regCount">0 คน</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="reg-count" id="regCount">0 คน</span>
+        <span id="regToggleIcon" style="font-size:13px;color:#b06030;transition:transform 0.3s;">▼</span>
+      </div>
     </div>
+
+    <!-- collapsible body -->
+    <div id="regBody" style="display:none;">
 
     <!-- Filter by dept -->
     <div class="reg-filter" id="deptFilter">
@@ -894,6 +900,11 @@
   const EMP_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/employees.json`;
   let allEmployees = [];
 
+  // strip คำนำหน้าชื่อ เพื่อ compare ได้ถูกต้อง
+  function stripPrefix(name){
+    return (name||'').replace(/^(นาย|นาง สาว|นางสาว|น\.ส\.|นาง|ด\.ช\.|ด\.ญ\.|Mr\.|Mrs\.|Ms\.|Dr\.)\s*/,'').trim();
+  }
+
   async function fetchEmployees(){
     try{
       const res  = await fetch(EMP_URL + '?t=' + Date.now());
@@ -968,6 +979,14 @@
     container.innerHTML =
       `<button class="filter-btn active" data-dept="all" onclick="filterDept('all',this)">ทั้งหมด</button>` + existing;
   }
+
+  window.toggleRegList = function(){
+    const body = document.getElementById('regBody');
+    const icon = document.getElementById('regToggleIcon');
+    const open = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    icon.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+  };
 
   window.filterDept = function(dept, btn){
     filteredDept = dept;
@@ -1116,8 +1135,8 @@
       showToast('⚠️ ไม่พบข้อมูลแผนก', 'warn'); return;
     }
 
-    // หา entry จาก allRegistrations
-    const found = allRegistrations.find(r => r.name === name);
+    // หา entry จาก allRegistrations (strip คำนำหน้าก่อน compare)
+    const found = allRegistrations.find(r => stripPrefix(r.name) === stripPrefix(name));
 
     // check ซ้ำ
     if(found){
