@@ -862,8 +862,7 @@
       const sha  = meta.sha;
 
       // 2. Decode เนื้อหาปัจจุบัน
-      const currentData = JSON.parse(atob(meta.content.replace(/
-/g,'')));
+      const currentData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
 
       // 3. หา code จาก HR list (ถ้ามี) หรือ gen ใหม่
       const hrEntry = (window._hrList||[]).find(r=>r.name===name);
