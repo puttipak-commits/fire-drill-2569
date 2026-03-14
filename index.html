@@ -789,6 +789,7 @@
   const API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${JSON_FILE}`;
 
   let allRegistrations = [];
+  let lastSaveTime = 0; // timestamp ล่าสุดที่ save สำเร็จ
 
   function parseRegistrations(data){
     // format 1: Array โดยตรง [{...}, {...}]
@@ -806,12 +807,23 @@
   /* updateStats/updateSearchResult moved into refreshUI */
 
   async function fetchStatus(){
+    // ถ้า save เพิ่งเสร็จใน 5 นาที → skip fetch (raw CDN ยัง cache เก่าอยู่)
+    if(Date.now() - lastSaveTime < 5 * 60 * 1000){
+      console.log('skip fetch — waiting for CDN cache to expire');
+      refreshUI();
+      return;
+    }
     try{
-      // fetch ตรงจาก raw GitHub + cache-bust
       const res = await fetch(JSON_URL + '?t=' + Date.now());
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
-      allRegistrations = JSON.parse(text);
+      const fresh = JSON.parse(text);
+      // ถ้า fresh มีข้อมูลน้อยกว่า local → CDN ยัง cache เก่า อย่าทับ
+      if(fresh.length >= allRegistrations.length){
+        allRegistrations = fresh;
+      } else {
+        console.log(`skip stale data: remote=${fresh.length} local=${allRegistrations.length}`);
+      }
     } catch(e){
       console.warn('fetchStatus error:', e);
     }
@@ -1215,6 +1227,7 @@
 
       // 7. Success! — อัปเดต allRegistrations ทันที ไม่รอ CDN cache
       allRegistrations = currentData;
+      lastSaveTime = Date.now(); // บอกให้ fetchStatus skip CDN cache
       showToast(`🎉 บันทึกสำเร็จ! ${name} (${dept})`, 'success');
       refreshUI();
       searchInput.value = '';
