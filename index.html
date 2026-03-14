@@ -80,19 +80,57 @@
     letter-spacing:2px;transition:color 0.3s;
   }
   .film-center{display:flex;flex-direction:column;align-items:center;gap:5px;}
-  .ring-wrap{
-    position:relative;width:114px;height:114px;
-    display:flex;align-items:center;justify-content:center;
+
+  /* ── Film frame (รูพีลม์บน-ล่าง) ── */
+  .film-frame{
+    background:#0f1a30;
+    border-radius:6px;
+    border:2px solid #1e2e52;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    box-shadow:0 4px 18px rgba(0,0,0,0.45);
   }
-  .ring-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
-  .film-strip{
-    background:#1a2744;border-radius:8px;
-    padding:6px 4px;border:2px solid #2a3a6a;
-    display:flex;align-items:center;gap:3px;z-index:1;
+
+  /* แถวรูพีลม์ */
+  .film-holes{
+    height:14px;
+    background:#0a1224;
+    overflow:hidden;
+    position:relative;
+  }
+  .film-holes-track{
+    display:flex;align-items:center;gap:0;
+    position:absolute;top:0;left:0;
+    height:100%;
+    /* ความกว้างรวม = 2× เพื่อ loop ไม่มีรอย */
+    will-change:transform;
+  }
+  .film-holes-track.top   { animation: filmRoll 3.5s linear infinite; }
+  .film-holes-track.bottom{ animation: filmRoll 3.5s linear infinite reverse; }
+
+  @keyframes filmRoll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .fh{ /* รูเดี่ยว */
+    flex-shrink:0;
+    width:16px; height:8px;
+    background:#0f1a30;
+    border-radius:2px;
+    border:1.5px solid #2a3a60;
+    margin:0 5px;
+  }
+
+  /* body ฟีลม์ (ด้านข้าง + canvas) */
+  .film-body{
+    display:flex;align-items:center;gap:3px;
+    padding:4px 6px;
+    background:#1a2744;
   }
   .sprockets{display:flex;flex-direction:column;gap:3px;}
-  .sp{width:12px;height:7px;background:#0d1a3a;border-radius:2px;border:1px solid #3a4a7a;}
-  #filmCanvas{display:block;border-radius:4px;}
+  .sp{width:10px;height:6px;background:#0d1a3a;border-radius:2px;border:1px solid #3a4a7a;}
+  #filmCanvas{display:block;border-radius:3px;}
   .days-label{color:rgba(255,220,80,0.85);font-size:10px;letter-spacing:3px;font-weight:700;}
   .refresh-label{color:rgba(255,255,255,0.38);font-size:9px;letter-spacing:1px;}
   .date-note{color:rgba(255,255,255,0.4);font-size:10px;margin:6px 0 0;letter-spacing:1px;}
@@ -400,18 +438,26 @@
         </div>
 
         <div class="film-center">
-          <div class="ring-wrap">
-            <svg width="114" height="114">
-              <circle cx="57" cy="57" r="52" fill="none" stroke="rgba(255,220,80,0.12)" stroke-width="4"/>
-              <circle id="ringArc" cx="57" cy="57" r="52" fill="none"
-                stroke="#ffd700" stroke-width="4" stroke-linecap="round"
-                stroke-dasharray="327" stroke-dashoffset="327"/>
-            </svg>
-            <div class="film-strip">
+          <!-- Film frame: รูพีลม์บน + canvas + รูพีลม์ล่าง -->
+          <div class="film-frame">
+
+            <!-- รูพีลม์บน (วิ่ง →) -->
+            <div class="film-holes">
+              <div class="film-holes-track top" id="holesTop"></div>
+            </div>
+
+            <!-- body: side sprockets + canvas -->
+            <div class="film-body">
               <div class="sprockets"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
-              <canvas id="filmCanvas" width="84" height="60"></canvas>
+              <canvas id="filmCanvas" width="90" height="64"></canvas>
               <div class="sprockets"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
             </div>
+
+            <!-- รูพีลม์ล่าง (วิ่ง ←) -->
+            <div class="film-holes">
+              <div class="film-holes-track bottom" id="holesBot"></div>
+            </div>
+
           </div>
           <span class="days-label">DAYS LEFT</span>
           <span class="refresh-label">refresh ใน <span id="refreshCountdown">10</span>s</span>
@@ -522,14 +568,29 @@
 
 <script>
 (function(){
+  /* ── Fill sprocket holes (ต้องมีพอ loop) ── */
+  (function(){
+    const HOLE_W = 26; /* px per hole (16px + 2×5px margin) */
+    const trackW = 140; /* canvas width + sides ≈ 130px */
+    const count  = Math.ceil(trackW / HOLE_W) * 2 + 4; /* ×2 เพื่อ seamless loop */
+    ['holesTop','holesBot'].forEach(id=>{
+      const el = document.getElementById(id);
+      let html = '';
+      for(let i=0;i<count;i++) html += '<div class="fh"></div>';
+      el.innerHTML = html;
+      /* ตั้ง width = count×26 เพื่อให้ loop ครึ่ง */
+      el.style.width = (count * HOLE_W) + 'px';
+    });
+  })();
+
   /* ════════════════════════════════
      FILM CANVAS — OTP-style animation
      Phase 1: arc sweep
-     Phase 2: crosshair draw
-     Phase 3: number scale large→normal + fade in
+     Phase 2: crosshair draw (ใหญ่→เล็ก)
+     Phase 3: number fade-in (ใหญ่→เล็ก)
   ════════════════════════════════ */
   const FC = document.getElementById('filmCanvas');
-  const FW = 84, FH = 60;
+  const FW = 90, FH = 64;
 
   function easeOutCubic(t){ return 1 - Math.pow(1-t,3); }
 
@@ -581,39 +642,44 @@
       ctx.clearRect(0,0,FW,FH);
       drawBg(ctx);
 
-      /* Phase 1: arc sweep (t 0→0.35) */
-      const p1 = Math.min(1, t/0.35);
+      /* ── Phase 1: วงกลมใน spin (t 0 → 0.40) ── */
+      const p1 = Math.min(1, t/0.40);
       const ep1 = easeOutCubic(p1);
       ctx.beginPath();
       ctx.arc(cx,cy,R, -Math.PI/2, -Math.PI/2 + ep1*Math.PI*2);
-      ctx.strokeStyle = `rgba(80,50,0,${0.15+0.2*ep1})`;
+      ctx.strokeStyle = `rgba(80,50,0,${0.13+0.22*ep1})`;
       ctx.lineWidth = 1.4; ctx.stroke();
-      if(p1>0.6){
-        const dp=(p1-0.6)/0.4;
-        ctx.beginPath(); ctx.arc(cx,cy,R*0.10*dp,0,Math.PI*2);
+      if(p1>0.55){
+        const dp=(p1-0.55)/0.45;
+        ctx.beginPath(); ctx.arc(cx,cy,R*0.12*dp,0,Math.PI*2);
         ctx.strokeStyle=`rgba(80,50,0,${0.18*dp})`; ctx.lineWidth=1; ctx.stroke();
       }
 
-      /* Phase 2: crosshair (t 0.30→0.58) */
-      if(t>0.30){
-        const p2 = Math.min(1,(t-0.30)/0.28);
+      /* ── Phase 2: แกน X Y fade-in ใหญ่→เล็ก (t 0.40 → 0.65) ── */
+      if(t>0.40){
+        const p2 = Math.min(1,(t-0.40)/0.25);
         const ep2 = easeOutCubic(p2);
-        const len = R*ep2;
-        ctx.strokeStyle=`rgba(80,50,0,${0.18*ep2})`; ctx.lineWidth=0.8;
-        ctx.beginPath(); ctx.moveTo(cx,cy-len); ctx.lineTo(cx,cy+len); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx-len*1.45,cy); ctx.lineTo(cx+len*1.45,cy); ctx.stroke();
+        const scl = 1.85 - 0.85*ep2;   /* 1.85 → 1.0 */
+        const lenV = R * scl;
+        const lenH = R * scl * 1.5;
+        ctx.save();
+        ctx.globalAlpha = ep2 * 0.30;
+        ctx.strokeStyle = 'rgba(50,28,0,1)'; ctx.lineWidth = 1.1;
+        ctx.beginPath(); ctx.moveTo(cx, cy-lenV); ctx.lineTo(cx, cy+lenV); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx-lenH, cy); ctx.lineTo(cx+lenH, cy); ctx.stroke();
+        ctx.restore();
       }
 
-      /* Phase 3: number scale 2.2→1 + fade in (t 0.52→1.0) */
-      if(t>0.52){
-        const p3 = Math.min(1,(t-0.52)/0.48);
+      /* ── Phase 3: เลข fade-in ใหญ่→เล็ก (t 0.65 → 1.0) ── */
+      if(t>0.65){
+        const p3 = Math.min(1,(t-0.65)/0.35);
         const ep3 = easeOutCubic(p3);
-        const scl = 2.2 - 1.2*ep3;
+        const scl = 2.2 - 1.2*ep3;     /* 2.2 → 1.0 */
         ctx.save();
         ctx.globalAlpha = ep3;
         ctx.fillStyle = '#1a0c00';
-        ctx.font = `bold ${FH*0.62*scl}px monospace`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = `bold ${FH*0.60*scl}px monospace`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=3;
         ctx.fillText(String(val).padStart(2,'0'), cx+1, cy+2);
         ctx.shadowBlur=0; ctx.restore();
@@ -627,11 +693,9 @@
   }
 
   /* ════════════════════════════════
-     AUTO REFRESH + PROGRESS RING
+     AUTO REFRESH COUNTDOWN
   ════════════════════════════════ */
-  const ringArc = document.getElementById('ringArc');
   const REFRESH_SEC = 10;
-  const CIRC = 327;
   let timeLeft = REFRESH_SEC;
 
   function getDaysLeft(){
@@ -650,12 +714,7 @@
   setInterval(()=>{
     timeLeft--;
     if(timeLeft <= 0) doRefresh();
-
-    // Progress ring
-    const frac = timeLeft / REFRESH_SEC;
-    ringArc.style.strokeDashoffset = String(CIRC * frac);
-    ringArc.style.stroke = frac > 0.5 ? '#ffd700' : frac > 0.2 ? '#ffaa00' : '#ff5500';
-    document.getElementById('refreshCountdown').textContent = timeLeft;
+    document.getElementById('refreshCountdown').textContent = Math.max(0,timeLeft);
 
     // Clock
     const now = new Date();
