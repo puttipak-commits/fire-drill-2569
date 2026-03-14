@@ -245,11 +245,16 @@
   }
 
   /* admin edit popover */
+  .wx-editor-bg{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,0.35);z-index:29999;
+  }
+  .wx-editor-bg.open{ display:block; }
   .wx-editor{
     display:none;position:fixed;z-index:30000;
     background:#fff;border-radius:18px;padding:18px 16px;
     box-shadow:0 8px 32px rgba(0,0,0,0.22);
-    width:240px;font-family:'Sarabun',sans-serif;
+    width:260px;font-family:'Sarabun',sans-serif;
   }
   .wx-editor.open{display:block;}
   .wx-editor h4{font-size:14px;font-weight:700;color:#333;margin:0 0 12px;}
@@ -609,7 +614,8 @@
     <div class="wx-strip" id="wxStrip"></div>
   </div>
 
-  <!-- weather editor popover -->
+  <!-- weather editor backdrop + popover -->
+  <div class="wx-editor-bg" id="wxEditorBg"></div>
   <div class="wx-editor" id="wxEditor">
     <h4 id="wxEditorTitle">แก้ไขสภาพอากาศ</h4>
     <div class="wx-icon-grid" id="wxIconGrid"></div>
@@ -1009,10 +1015,25 @@
         <div class="wx-rain-pct">${d.rainPct>0?'💧'+d.rainPct+'%':''}</div>
       `;
 
-      /* long press → admin edit */
+      /* long press → admin edit (with visual feedback) */
       let pressTimer = null;
-      const startPress = ()=>{ pressTimer = setTimeout(()=>{ pressTimer=null; openWxEditor(i, card); }, 600); };
-      const endPress   = ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } };
+      const startPress = (e)=>{
+        card.style.transition = 'transform 0.6s,opacity 0.6s';
+        card.style.transform  = 'scale(0.92)';
+        card.style.opacity    = '0.7';
+        pressTimer = setTimeout(()=>{
+          pressTimer = null;
+          card.style.transform = '';
+          card.style.opacity   = '';
+          if(navigator.vibrate) navigator.vibrate(40);
+          openWxEditor(i, card);
+        }, 600);
+      };
+      const endPress = ()=>{
+        if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
+        card.style.transform = '';
+        card.style.opacity   = '';
+      };
       card.addEventListener('mousedown',  startPress);
       card.addEventListener('touchstart', startPress, {passive:true});
       card.addEventListener('mouseup',    endPress);
@@ -1072,24 +1093,21 @@
     document.getElementById('wxTempInp').value = d.temp;
     document.getElementById('wxRainInp').value = d.rainPct;
 
-    /* position near card */
-    const rect = cardEl.getBoundingClientRect();
+    /* position: center of screen (mobile-safe) */
     const editor = document.getElementById('wxEditor');
+    document.getElementById('wxEditorBg').classList.add('open');
     editor.classList.add('open');
-    const ew = 240, eh = 280;
-    let left = rect.left + rect.width/2 - ew/2;
-    let top  = rect.top  - eh - 10;
-    if(top < 8)       top  = rect.bottom + 10;
-    if(left < 8)      left = 8;
-    if(left+ew > window.innerWidth-8) left = window.innerWidth-ew-8;
-    editor.style.left = left+'px';
-    editor.style.top  = top +'px';
+    editor.style.left = '50%';
+    editor.style.top  = '50%';
+    editor.style.transform = 'translate(-50%,-50%)';
   }
 
   function closeWxEditor(){
     document.getElementById('wxEditor').classList.remove('open');
+    document.getElementById('wxEditorBg').classList.remove('open');
     wxEditIdx = -1;
   }
+  document.getElementById('wxEditorBg').onclick = closeWxEditor;
 
   document.getElementById('wxCancelBtn').onclick = closeWxEditor;
   document.getElementById('wxSaveBtn').onclick = ()=>{
@@ -1105,13 +1123,7 @@
     showToast('✅ บันทึกพยากรณ์แล้วครับ', 'success');
   };
 
-  /* close editor when clicking outside */
-  document.addEventListener('mousedown', e=>{
-    const ed = document.getElementById('wxEditor');
-    if(ed.classList.contains('open') && !ed.contains(e.target)){
-      closeWxEditor();
-    }
-  });
+  /* ── close editor on backdrop click (handled by wxEditorBg.onclick above) ── */
 
   /* ════════════════════════════════
      FETCH STATUS จาก GitHub JSON
