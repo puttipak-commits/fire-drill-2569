@@ -1027,19 +1027,37 @@
     btnConfirm.textContent = '⏳ กำลังบันทึก...';
 
     try{
-      // 1. GET SHA ของไฟล์ปัจจุบัน
+      // 1. GET SHA + content ของไฟล์ปัจจุบัน
       const metaRes = await fetch(API_BASE, {
         headers:{ Authorization:`token ${GITHUB_TOKEN}`, Accept:'application/vnd.github.v3+json' }
       });
+
+      if(!metaRes.ok){
+        const errBody = await metaRes.json().catch(()=>({}));
+        throw new Error(`GET failed: ${metaRes.status} — ${errBody.message||''}`);
+      }
+
       const meta = await metaRes.json();
+
+      // debug: แสดงใน console ว่า API ส่งอะไรมา
+      console.log('GitHub API meta keys:', Object.keys(meta));
+      console.log('sha:', meta.sha, 'content length:', (meta.content||'').length);
+
+      if(!meta.sha){
+        throw new Error('ไม่ได้รับ SHA จาก GitHub — ตรวจสอบ Token permission (Contents: Read & Write)');
+      }
+      if(!meta.content){
+        throw new Error('ไม่ได้รับ content จาก GitHub — ไฟล์อาจใหญ่เกิน หรือ Token ไม่มีสิทธิ์อ่าน');
+      }
+
       const sha  = meta.sha;
 
       // 2. Decode เนื้อหาปัจจุบัน
       const currentData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
 
-      // 3. หา code จาก HR list (ถ้ามี) หรือ gen ใหม่
-      const hrEntry = (window._hrList||[]).find(r=>r.name===name);
-      const code = hrEntry ? hrEntry.code : String(Math.floor(Math.random()*900)+100);
+      // 3. หา code จาก employees.json
+      const empEntry = allEmployees.find(r => r.name === name);
+      const code = empEntry ? empEntry.code : String(Math.floor(Math.random()*900)+100).padStart(3,'0');
 
       // 4. เพิ่ม entry ใหม่
       const now = new Date();
