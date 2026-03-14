@@ -1169,9 +1169,10 @@
       const sha  = meta.sha;
 
       // 2. Decode เนื้อหาปัจจุบัน
-      // decode base64 → UTF-8 ถูกต้อง
+      // decode base64 → UTF-8 ด้วย TextDecoder (รองรับภาษาไทย)
       const raw = atob(meta.content.replace(/\n/g,''));
-      const currentData = JSON.parse(decodeURIComponent(raw.split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+      const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+      const currentData = JSON.parse(new TextDecoder('utf-8').decode(bytes));
 
       // 3. หา code จาก employees.json
       const empEntry = allEmployees.find(r => r.name === name);
@@ -1184,9 +1185,10 @@
       currentData.push(newEntry);
 
       // 5. เข้ารหัส base64
-      // encode UTF-8 → base64 ถูกต้อง
+      // encode UTF-8 → base64 ด้วย TextEncoder (รองรับภาษาไทย)
       const jsonStr = JSON.stringify(currentData, null, 2);
-      const newContent = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g,(_,p)=>String.fromCharCode('0x'+p)));
+      const encBytes = new TextEncoder().encode(jsonStr);
+      const newContent = btoa(Array.from(encBytes).map(b=>String.fromCharCode(b)).join(''));
 
       // 6. PUT กลับ GitHub
       const putRes = await fetch(API_BASE, {
