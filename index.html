@@ -609,7 +609,7 @@
   <div class="wx-card">
     <div class="wx-header">
       <span class="wx-title">🌤️ พยากรณ์อากาศ 10 วัน · กรุงเทพฯ</span>
-      <span class="wx-admin-hint" id="wxAdminHint">กดค้างที่วันเพื่อแก้ไข (Admin)</span>
+      <span class="wx-admin-hint" id="wxAdminHint">✏️ กดค้าง 0.6 วิ เพื่อแก้ไข</span>
     </div>
     <div class="wx-strip" id="wxStrip"></div>
   </div>
@@ -1054,15 +1054,7 @@
   let wxEditorPinDone = false;
 
   function openWxEditor(idx, cardEl){
-    /* ต้อง unlock PIN ก่อน */
-    if(!wxEditorPinDone){
-      openPinModal(()=>{
-        wxEditorPinDone = true;
-        showWxEditor(idx, cardEl);
-      });
-    } else {
-      showWxEditor(idx, cardEl);
-    }
+    showWxEditor(idx, cardEl);
   }
 
   function showWxEditor(idx, cardEl){
@@ -1113,14 +1105,18 @@
   document.getElementById('wxSaveBtn').onclick = ()=>{
     if(wxEditIdx < 0) return;
     const selIcon = document.querySelector('#wxIconGrid .wx-icon-btn.selected');
-    wxData[wxEditIdx].icon     = selIcon ? selIcon.textContent : wxData[wxEditIdx].icon;
-    wxData[wxEditIdx].temp     = document.getElementById('wxTempInp').value.trim() || wxData[wxEditIdx].temp;
-    wxData[wxEditIdx].rainPct  = parseInt(document.getElementById('wxRainInp').value) || 0;
+    wxData[wxEditIdx].icon    = selIcon ? selIcon.textContent : wxData[wxEditIdx].icon;
+    wxData[wxEditIdx].temp    = document.getElementById('wxTempInp').value.trim() || wxData[wxEditIdx].temp;
+    wxData[wxEditIdx].rainPct = parseInt(document.getElementById('wxRainInp').value) || 0;
     wxSave(wxData);
     closeWxEditor();
     buildStrip();
     applyTodayRain();
-    showToast('✅ บันทึกพยากรณ์แล้วครับ', 'success');
+
+    const pct  = wxData[wxEditIdx] ? wxData[wxEditIdx].rainPct : 0;
+    const icon = wxData[wxEditIdx] ? wxData[wxEditIdx].icon : '';
+    const rainWords = pct<=5?'ไม่มีฝน ☀️':pct<=20?'ฝนเบา 🌤️':pct<=50?'ฝนปานกลาง 🌦️':pct<=80?'ฝนหนัก 🌧️':'พายุ ⛈️';
+    showToast(`✅ บันทึกแล้ว ${icon} ${rainWords} (${pct}%)`, 'success');
   };
 
   /* ── close editor on backdrop click (handled by wxEditorBg.onclick above) ── */
