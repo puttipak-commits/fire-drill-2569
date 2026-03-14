@@ -268,19 +268,21 @@
     transition:all 0.15s;
   }
   .wx-icon-btn.selected{border-color:#e85d04;background:#fff0e6;}
-  .wx-temp-row{display:flex;gap:6px;align-items:center;margin-bottom:8px;}
-  .wx-temp-row label{font-size:11px;color:#b06030;font-weight:700;white-space:nowrap;}
-  .wx-temp-inp{
-    flex:1;padding:6px 10px;border-radius:9px;
-    border:1.5px solid #f0d8c0;font-size:13px;outline:none;font-family:inherit;
+  .wx-stepper-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .wx-stepper-label{font-size:12px;font-weight:700;color:#555;}
+  .wx-stepper{display:flex;align-items:center;gap:6px;}
+  .wx-step-btn{
+    width:34px;height:34px;border-radius:10px;border:1.5px solid #f0d8c0;
+    background:#fff;font-size:20px;font-weight:700;color:#e85d04;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    line-height:1;transition:background 0.15s;-webkit-tap-highlight-color:transparent;
   }
-  .wx-temp-inp:focus{border-color:#e85d04;}
-  .wx-rain-row{display:flex;gap:6px;align-items:center;margin-bottom:10px;}
-  .wx-rain-row label{font-size:11px;color:#4a90d9;font-weight:700;white-space:nowrap;}
-  .wx-rain-inp{
-    flex:1;padding:6px 10px;border-radius:9px;
-    border:1.5px solid #d0e4f8;font-size:13px;outline:none;font-family:inherit;
+  .wx-step-btn:active{background:#fff0e6;}
+  .wx-step-val{
+    min-width:36px;text-align:center;
+    font-size:18px;font-weight:700;color:#333;
   }
+  .wx-step-unit{font-size:12px;color:#999;}
   .wx-editor-btns{display:flex;gap:7px;}
   .wx-save-btn{
     flex:1;padding:9px;border-radius:11px;border:none;
@@ -619,14 +621,24 @@
   <div class="wx-editor" id="wxEditor">
     <div class="wx-editor h4" id="wxEditorTitle" style="font-size:13px;font-weight:700;color:#333;margin:0 0 8px;"></div>
     <div class="wx-icon-grid" id="wxIconGrid"></div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <div class="wx-temp-row" style="flex:1;margin-bottom:0;">
-        <label>🌡️</label>
-        <input class="wx-temp-inp" id="wxTempInp" type="text" placeholder="32°C">
+    <!-- temp stepper -->
+    <div class="wx-stepper-row">
+      <span class="wx-stepper-label">🌡️ อุณหภูมิ</span>
+      <div class="wx-stepper">
+        <button class="wx-step-btn" id="wxTempMinus">−</button>
+        <span class="wx-step-val" id="wxTempVal">33</span>
+        <span class="wx-step-unit">°C</span>
+        <button class="wx-step-btn" id="wxTempPlus">+</button>
       </div>
-      <div class="wx-rain-row" style="flex:1;margin-bottom:0;">
-        <label>💧</label>
-        <input class="wx-rain-inp" id="wxRainInp" type="number" min="0" max="100" placeholder="%">
+    </div>
+    <!-- rain stepper -->
+    <div class="wx-stepper-row">
+      <span class="wx-stepper-label">💧 ฝน</span>
+      <div class="wx-stepper">
+        <button class="wx-step-btn" id="wxRainMinus">−</button>
+        <span class="wx-step-val" id="wxRainVal">0</span>
+        <span class="wx-step-unit">%</span>
+        <button class="wx-step-btn" id="wxRainPlus">+</button>
       </div>
     </div>
     <div class="wx-editor-btns">
@@ -949,17 +961,18 @@
 
   /* default 11 วัน Mar 14–25 */
   const WX_DAYS_DEF = [
-    {icon:'🌤️',temp:'33°C',rainPct:10},
-    {icon:'☀️', temp:'34°C',rainPct:5 },
-    {icon:'☀️', temp:'35°C',rainPct:0 },
-    {icon:'⛅', temp:'33°C',rainPct:20},
-    {icon:'🌦️',temp:'31°C',rainPct:50},
-    {icon:'🌧️',temp:'29°C',rainPct:80},
-    {icon:'⛅', temp:'32°C',rainPct:25},
-    {icon:'🌤️',temp:'33°C',rainPct:10},
-    {icon:'☀️', temp:'34°C',rainPct:5 },
-    {icon:'🌤️',temp:'33°C',rainPct:15},
-    {icon:'☀️', temp:'34°C',rainPct:5 }, /* Mar 25 วันอบรม */
+    {icon:'🌤️',temp:'33°C',rainPct:10},  /* 14/3 */
+    {icon:'☀️', temp:'34°C',rainPct:5 },  /* 15/3 */
+    {icon:'☀️', temp:'35°C',rainPct:0 },  /* 16/3 */
+    {icon:'⛅', temp:'33°C',rainPct:20},  /* 17/3 */
+    {icon:'🌦️',temp:'31°C',rainPct:50},  /* 18/3 */
+    {icon:'🌧️',temp:'29°C',rainPct:80},  /* 19/3 */
+    {icon:'⛅', temp:'32°C',rainPct:25},  /* 20/3 */
+    {icon:'🌤️',temp:'33°C',rainPct:10},  /* 21/3 */
+    {icon:'☀️', temp:'34°C',rainPct:5 },  /* 22/3 */
+    {icon:'🌤️',temp:'33°C',rainPct:15},  /* 23/3 */
+    {icon:'☀️', temp:'34°C',rainPct:5 },  /* 24/3 */
+    {icon:'☀️', temp:'34°C',rainPct:5 },  /* 25/3 🔥 วันอบรม */
   ];
 
   const DOW_TH  = ['อา','จ','อ','พ','พฤ','ศ','ส'];
@@ -967,8 +980,13 @@
   const TRAIN_D = new Date('2026-03-25T00:00:00+07:00');
 
   function wxLoad(){
-    try{ return JSON.parse(localStorage.getItem(WX_KEY)) || WX_DAYS_DEF.map(d=>({...d})); }
-    catch(e){ return WX_DAYS_DEF.map(d=>({...d})); }
+    try{
+      const saved = JSON.parse(localStorage.getItem(WX_KEY));
+      if(!saved) return WX_DAYS_DEF.map(d=>({...d}));
+      /* ถ้า save ไว้แค่ 11 วัน → เพิ่ม Mar 25 */
+      if(saved.length < 12) saved.push({icon:'☀️',temp:'34°C',rainPct:5});
+      return saved;
+    } catch(e){ return WX_DAYS_DEF.map(d=>({...d})); }
   }
   function wxSave(data){ localStorage.setItem(WX_KEY, JSON.stringify(data)); }
 
@@ -1086,8 +1104,25 @@
       grid.appendChild(btn);
     });
 
-    document.getElementById('wxTempInp').value = d.temp;
-    document.getElementById('wxRainInp').value = d.rainPct;
+    document.getElementById('wxTempInp') && (document.getElementById('wxTempInp').value = d.temp);
+    document.getElementById('wxRainInp') && (document.getElementById('wxRainInp').value = d.rainPct);
+
+    /* stepper values */
+    let stepTemp = parseInt(d.temp) || 33;
+    let stepRain = d.rainPct || 0;
+    const tempVal = document.getElementById('wxTempVal');
+    const rainVal = document.getElementById('wxRainVal');
+    tempVal.textContent = stepTemp;
+    rainVal.textContent = stepRain;
+
+    document.getElementById('wxTempMinus').onclick = ()=>{ stepTemp = Math.max(20,stepTemp-1); tempVal.textContent=stepTemp; };
+    document.getElementById('wxTempPlus').onclick  = ()=>{ stepTemp = Math.min(45,stepTemp+1); tempVal.textContent=stepTemp; };
+    document.getElementById('wxRainMinus').onclick = ()=>{ stepRain = Math.max(0, stepRain-5);  rainVal.textContent=stepRain; };
+    document.getElementById('wxRainPlus').onclick  = ()=>{ stepRain = Math.min(100,stepRain+5); rainVal.textContent=stepRain; };
+
+    /* store refs for save */
+    document.getElementById('wxEditor')._stepTemp = ()=> stepTemp;
+    document.getElementById('wxEditor')._stepRain = ()=> stepRain;
 
     /* position: center of screen (mobile-safe) */
     const editor = document.getElementById('wxEditor');
@@ -1108,19 +1143,20 @@
   document.getElementById('wxCancelBtn').onclick = closeWxEditor;
   document.getElementById('wxSaveBtn').onclick = ()=>{
     if(wxEditIdx < 0) return;
-    const idx     = wxEditIdx; /* capture ก่อน close reset เป็น -1 */
-    const selIcon = document.querySelector('#wxIconGrid .wx-icon-btn.selected');
-    wxData[idx].icon     = selIcon ? selIcon.textContent.trim() : wxData[idx].icon;
-    wxData[idx].temp     = document.getElementById('wxTempInp').value.trim() || wxData[idx].temp;
-    wxData[idx].rainPct  = parseInt(document.getElementById('wxRainInp').value) || 0;
+    const idx      = wxEditIdx;
+    const selIcon  = document.querySelector('#wxIconGrid .wx-icon-btn.selected');
+    const editorEl = document.getElementById('wxEditor');
+    const newTemp  = editorEl._stepTemp ? editorEl._stepTemp() : (parseInt(wxData[idx].temp)||33);
+    const newRain  = editorEl._stepRain ? editorEl._stepRain() : 0;
+    wxData[idx].icon    = selIcon ? selIcon.textContent.trim() : wxData[idx].icon;
+    wxData[idx].temp    = newTemp + '°C';
+    wxData[idx].rainPct = newRain;
     wxSave(wxData);
     closeWxEditor();
     buildStrip();
     applyTodayRain();
-    const pct  = wxData[idx].rainPct;
-    const icon = wxData[idx].icon;
-    const rainWords = pct<=5?'ไม่มีฝน ☀️':pct<=20?'ฝนเบา 🌤️':pct<=50?'ฝนปานกลาง 🌦️':pct<=80?'ฝนหนัก 🌧️':'พายุ ⛈️';
-    showToast(`✅ บันทึกแล้ว ${icon} ${rainWords} (${pct}%)`, 'success');
+    const rainWords = newRain<=5?'ไม่มีฝน ☀️':newRain<=20?'ฝนเบา 🌤️':newRain<=50?'ฝนปานกลาง 🌦️':newRain<=80?'ฝนหนัก 🌧️':'พายุ ⛈️';
+    showToast(`✅ บันทึกแล้ว ${wxData[idx].icon} ${newTemp}°C ${rainWords} (${newRain}%)`, 'success');
   };
 
   /* ── close editor on backdrop click (handled by wxEditorBg.onclick above) ── */
